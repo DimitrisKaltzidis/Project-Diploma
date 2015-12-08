@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.jim.robotos_v2.FieldNavigation">
+
+    <fragment
+        android:id="@+id/fragmentMap"
+        android:name="com.google.android.gms.maps.MapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerHorizontal="true"
+        android:layout_above="@+id/linearLayout"
+        android:layout_alignTop="@+id/relativeLayout" />
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_alignParentTop="true"
+        android:background="@color/black_transparent"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:id="@+id/relativeLayout">
+
+        <ImageView
+            android:id="@+id/ivDirection"
+            android:layout_width="wrap_content"
+            android:layout_height="41dp"
+            android:layout_gravity="center"
+            android:layout_alignParentStart="true"
+            android:contentDescription="@string/control_button"
+            android:scaleType="fitCenter"
+            android:src="@drawable/stop" />
+
+        <ImageView
+            android:id="@+id/ivBearing"
+            android:layout_width="wrap_content"
+            android:layout_height="41dp"
+            android:layout_gravity="center"
+            android:layout_centerHorizontal="true"
+            android:contentDescription="@string/control_button"
+            android:scaleType="fitCenter"
+            android:src="@drawable/correct_direction" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="41dp"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimary"
+            android:layout_alignParentEnd="true"
+            android:textAppearance="?android:attr/textAppearanceLargeInverse"
+            android:text="@string/default_distance"
+            android:id="@+id/textView"
+            tools:ignore="RelativeOverlap" />
+
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:background="@color/black_transparent"
+        android:orientation="horizontal"
+        android:weightSum="4"
+        android:id="@+id/linearLayout">
+
+
+        <ImageView
+            android:id="@+id/ivShowMyLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="43dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:contentDescription="@string/control_button"
+            android:scaleType="fitCenter"
+            android:src="@drawable/mylocation" />
+
+        <ImageView
+            android:id="@+id/ivClearAll"
+            android:layout_width="wrap_content"
+            android:layout_height="43dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:contentDescription="@string/control_button"
+            android:scaleType="fitCenter"
+            android:src="@drawable/erase" />
+
+        <ImageView
+            android:id="@+id/ivAddPointToPath"
+            android:layout_width="wrap_content"
+            android:layout_height="43dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:contentDescription="@string/control_button"
+            android:scaleType="fitCenter"
+            android:src="@drawable/save" />
+
+        <ImageView
+            android:id="@+id/ivPlayStop"
+            android:layout_width="wrap_content"
+            android:layout_height="43dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:contentDescription="@string/control_button"
+            android:scaleType="fitCenter"
+            android:src="@drawable/play" />
+
+    </LinearLayout>
+</RelativeLayout>

@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Robot OS</string>
+    <string name="logoImage">logoImage</string>
+    <string name="robot_os">Robot OS</string>
+    <string name="version_2_0">Version 2.0</string>
+    <string name="activity_field_navigation_label">Field Navigation</string>
+    <string name="activity_main_menu_label">RobotOS v2</string>
+    <string name="control_button">control_button</string>
+    <string name="default_distance">D: 10m</string>
+    <string name="title_activity_maps">Map</string>
+</resources>

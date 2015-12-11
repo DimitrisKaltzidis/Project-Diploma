@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +21,7 @@ public class Preferences {
         SharedPreferences.Editor edit = sharedPreferences.edit();
         edit.putString(toBeSaved, valueToBeSaved);
         edit.commit();
-        Log.e("Execute Preference Command", "SAVE STRING PREFERENCE '" + toBeSaved + "' WITH VALUE '" + valueToBeSaved + "'");
+      //  Log.e("Execute Preference Command", "SAVE STRING PREFERENCE '" + toBeSaved + "' WITH VALUE '" + valueToBeSaved + "'");
     }
 
     @SuppressLint("LongLogTag")
@@ -33,7 +32,7 @@ public class Preferences {
         SharedPreferences.Editor edit = sharedPreferences.edit();
         edit.putInt(toBeSaved, valueToBeSaved);
         edit.commit();
-        Log.e("Execute Preference Command", "SAVE INT PREFERENCE '" + toBeSaved + "' WITH VALUE '" + valueToBeSaved + "'");
+     //   Log.e("Execute Preference Command", "SAVE INT PREFERENCE '" + toBeSaved + "' WITH VALUE '" + valueToBeSaved + "'");
     }
 
     @SuppressLint("LongLogTag")
@@ -44,7 +43,7 @@ public class Preferences {
         SharedPreferences.Editor edit = sharedPreferences.edit();
         edit.putFloat(toBeSaved, valueToBeSaved);
         edit.commit();
-        Log.e("Execute Preference Command", "SAVE FLOAT PREFERENCE '" + toBeSaved + "' WITH VALUE '" + valueToBeSaved + "'");
+      //  Log.e("Execute Preference Command", "SAVE FLOAT PREFERENCE '" + toBeSaved + "' WITH VALUE '" + valueToBeSaved + "'");
     }
 
     @SuppressLint("LongLogTag")
@@ -52,7 +51,7 @@ public class Preferences {
         SharedPreferences sharedPreferences = PreferenceManager
                 .getDefaultSharedPreferences(context);
         float value = sharedPreferences.getFloat(name, defaultValue);
-        Log.e("Execute Preference Command", "LOAD FLOAT PREFERENCE '" + name + "' WITH VALUE '" + value + "'");
+      //  Log.e("Execute Preference Command", "LOAD FLOAT PREFERENCE '" + name + "' WITH VALUE '" + value + "'");
         return value;
     }
 
@@ -61,7 +60,7 @@ public class Preferences {
         SharedPreferences sharedPreferences = PreferenceManager
                 .getDefaultSharedPreferences(context);
         String value = sharedPreferences.getString(name, defaultValue);
-        Log.e("Execute Preference Command", "LOAD STRING PREFERENCE '" + name + "' WITH VALUE '" + value + "'");
+       // Log.e("Execute Preference Command", "LOAD STRING PREFERENCE '" + name + "' WITH VALUE '" + value + "'");
         return value;
     }
 
@@ -70,7 +69,7 @@ public class Preferences {
         SharedPreferences sharedPreferences = PreferenceManager
                 .getDefaultSharedPreferences(context);
         int value = sharedPreferences.getInt(name, defaultValue);
-        Log.e("Execute Preference Command", "LOAD INT PREFERENCE '" + name + "' WITH VALUE '" + value + "'");
+      //  Log.e("Execute Preference Command", "LOAD INT PREFERENCE '" + name + "' WITH VALUE '" + value + "'");
         return value;
     }
 
@@ -93,7 +92,7 @@ public class Preferences {
 
         editor.putInt(prefix + "_size", list.size());
         editor.commit();
-        Log.e("Execute Preference Command", "WRITE LIST");
+       // Log.e("Execute Preference Command", "WRITE LIST");
     }
 
     @SuppressLint("LongLogTag")
@@ -106,7 +105,7 @@ public class Preferences {
         List<String> data = new ArrayList<String>(size);
         for (int i = 0; i < size; i++)
             data.add(prefs.getString(prefix + "_" + i, null));
-        Log.e("Execute Preference Command", "READ LIST");
+       // Log.e("Execute Preference Command", "READ LIST");
         return data;
     }
 
@@ -120,10 +119,10 @@ public class Preferences {
                         context) == -1)) {
                     Preferences.savePrefsInt(listToBeSaved.get(i) + prefix, 0,
                             context);
-                    Log.e("Execute Preference Command", "WRITE NAME "+listToBeSaved.get(i)+" FROM LIST WITH VALUE '0'");
+                //    Log.e("Execute Preference Command", "WRITE NAME "+listToBeSaved.get(i)+" FROM LIST WITH VALUE '0'");
                 }
             } catch (Exception e) {
-                Log.e("ERROR","Execute Preference Command from 'saveListIntValuesToPreferencesWithPrefix' Method");
+              //  Log.e("ERROR","Execute Preference Command from 'saveListIntValuesToPreferencesWithPrefix' Method");
 
             }
         }

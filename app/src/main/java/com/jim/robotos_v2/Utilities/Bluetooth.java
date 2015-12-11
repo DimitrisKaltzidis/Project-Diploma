@@ -14,7 +14,6 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 /**
@@ -454,7 +453,7 @@ public class Bluetooth {
 
 		public void run() {
 			Log.i(TAG, "BEGIN mConnectedThread");
-			byte[] buffer = new byte[1];
+			byte[] buffer = new byte[1024];
 			int bytes;
 
 			// Keep listening to the InputStream while connected
@@ -462,10 +461,6 @@ public class Bluetooth {
 				try {
 					// Read from the InputStream
 					bytes = mmInStream.read(buffer);
-					//Log.d(TAG, "message bytes " + bytes);
-					//Log.d(TAG, "message string bytes " + String.valueOf(bytes));
-				//	Log.d(TAG, "message buffer " + new String(buffer, StandardCharsets.UTF_8));
-					Log.d(TAG, "DISTANCE RECEIVED : " + new String(buffer, StandardCharsets.UTF_8));
 					// Send the obtained bytes to the UI Activity
 					mHandler.obtainMessage(MESSAGE_READ, bytes,
 							-1, buffer).sendToTarget();

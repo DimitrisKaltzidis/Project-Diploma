@@ -3,33 +3,45 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:keepScreenOn="true"
     tools:context="com.jim.robotos_v2.FieldNavigation">
 
     <fragment
         android:id="@+id/fragmentMap"
-        android:name="com.google.android.gms.maps.MapFragment"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_centerHorizontal="true"
         android:layout_above="@+id/linearLayout"
-        android:layout_alignTop="@+id/relativeLayout" />
+        android:layout_alignTop="@+id/relativeLayout"
+        android:layout_centerHorizontal="true" />
 
 
-    <RelativeLayout
+    <LinearLayout
+        android:id="@+id/relativeLayout"
         android:layout_width="match_parent"
         android:layout_height="45dp"
         android:layout_alignParentTop="true"
         android:background="@color/black_transparent"
-        android:orientation="horizontal"
         android:gravity="center"
-        android:id="@+id/relativeLayout">
+        android:orientation="horizontal"
+        android:weightSum="5">
+
+        <ImageView
+            android:id="@+id/ivBluetooth"
+            android:layout_width="wrap_content"
+            android:layout_height="41dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:contentDescription="@string/control_button"
+            android:scaleType="fitCenter"
+            android:src="@drawable/disconnected" />
 
         <ImageView
             android:id="@+id/ivDirection"
             android:layout_width="wrap_content"
             android:layout_height="41dp"
             android:layout_gravity="center"
-            android:layout_alignParentStart="true"
+            android:layout_weight="1"
             android:contentDescription="@string/control_button"
             android:scaleType="fitCenter"
             android:src="@drawable/stop" />
@@ -39,34 +51,45 @@
             android:layout_width="wrap_content"
             android:layout_height="41dp"
             android:layout_gravity="center"
-            android:layout_centerHorizontal="true"
+            android:layout_weight="1"
             android:contentDescription="@string/control_button"
             android:scaleType="fitCenter"
             android:src="@drawable/correct_direction" />
 
+        <ImageView
+            android:id="@+id/ivCompassNorth"
+            android:layout_width="wrap_content"
+            android:layout_height="41dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:contentDescription="@string/control_button"
+            android:scaleType="fitCenter"
+            android:src="@drawable/up" />
+
         <TextView
+            android:id="@+id/tvDistance"
             android:layout_width="wrap_content"
             android:layout_height="41dp"
             android:gravity="center"
-            android:textStyle="bold"
-            android:textColor="@color/colorPrimary"
-            android:layout_alignParentEnd="true"
-            android:textAppearance="?android:attr/textAppearanceLargeInverse"
+            android:layout_weight="1"
+            android:background="@drawable/rectangle"
             android:text="@string/default_distance"
-            android:id="@+id/textView"
+            android:textAppearance="?android:attr/textAppearanceMediumInverse"
+            android:textColor="@color/colorPrimary"
+            android:textStyle="bold"
             tools:ignore="RelativeOverlap" />
 
 
-    </RelativeLayout>
+    </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_alignParentBottom="true"
         android:background="@color/black_transparent"
         android:orientation="horizontal"
-        android:weightSum="4"
-        android:id="@+id/linearLayout">
+        android:weightSum="4">
 
 
         <ImageView
@@ -77,6 +100,7 @@
             android:layout_weight="1"
             android:contentDescription="@string/control_button"
             android:scaleType="fitCenter"
+            android:onClick="showMyLocationClicked"
             android:src="@drawable/mylocation" />
 
         <ImageView
@@ -87,6 +111,7 @@
             android:layout_weight="1"
             android:contentDescription="@string/control_button"
             android:scaleType="fitCenter"
+            android:onClick="clearRouteClicked"
             android:src="@drawable/erase" />
 
         <ImageView
@@ -97,6 +122,7 @@
             android:layout_weight="1"
             android:contentDescription="@string/control_button"
             android:scaleType="fitCenter"
+            android:onClick="addMyLocationToRoute"
             android:src="@drawable/save" />
 
         <ImageView
@@ -107,6 +133,7 @@
             android:layout_weight="1"
             android:contentDescription="@string/control_button"
             android:scaleType="fitCenter"
+            android:onClick="playButtonClicked"
             android:src="@drawable/play" />
 
     </LinearLayout>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <integer name="refresh_location_interval_milliseconds">500</integer>
+    <integer name="refresh_location_fastest_interval_milliseconds">500</integer>
+    <integer name="zoom_level">18</integer>
+</resources>

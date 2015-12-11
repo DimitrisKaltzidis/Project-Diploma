@@ -1,16 +1,18 @@
 package com.jim.robotos_v2.RouteLogic;
 
+import android.location.Location;
+
 import com.google.android.gms.maps.model.LatLng;
 
 public class Point {
 
     private LatLng position;
-    private boolean isVisited = false;
+    private boolean isVisited;
     private String name;
 
-    public Point(LatLng position, boolean isVisited, String name) {
+    public Point(LatLng position, String name) {
         this.position = position;
-        this.isVisited = isVisited;
+        this.isVisited = false;
         this.name = name;
     }
 
@@ -18,16 +20,24 @@ public class Point {
         return position;
     }
 
+    public Location getPositionAsLocationobject(){
+        Location temp = new Location("Point Location");
+        temp.setLatitude(position.latitude);
+        temp.setLongitude(position.longitude);
+        return temp;
+    }
+
     public void setPosition(LatLng position) {
         this.position = position;
     }
 
-    public boolean isVisited() {
-        return isVisited;
+
+    public void setVisited() {
+        this.isVisited = true;
     }
 
-    public void setIsVisited(boolean isVisited) {
-        this.isVisited = isVisited;
+    public void setNotVisited() {
+        this.isVisited = false;
     }
 
     public String getName() {
@@ -37,4 +47,13 @@ public class Point {
     public void setName(String name) {
         this.name = name;
     }
+
+    public boolean isVisited() {
+        return isVisited;
+    }
+
+    public void setVisited(boolean visited) {
+        isVisited = visited;
+    }
+
 }

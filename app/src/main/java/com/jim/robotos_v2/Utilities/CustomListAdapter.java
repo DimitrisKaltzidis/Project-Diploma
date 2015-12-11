@@ -10,37 +10,42 @@ import android.widget.TextView;
 
 import com.jim.robotos_v2.R;
 
-
-/**
- * Created by Jim on 5/12/2015.
- */
 public class CustomListAdapter extends ArrayAdapter<String> {
 
     private final Activity context;
-    private final String[] itemname;
-    private final Integer[] imgid;
+    private final String[] itemName;
+    private final Integer[] imageId;
 
-    public CustomListAdapter(Activity context, String[] itemname, Integer[] imgid) {
-        super(context, R.layout.row, itemname);
-        // TODO Auto-generated constructor stub
+    public CustomListAdapter(Activity context, String[] itemName, Integer[] imageId) {
+        super(context, R.layout.row, itemName);
 
-        this.context=context;
-        this.itemname=itemname;
-        this.imgid=imgid;
+        this.context = context;
+        this.itemName = itemName;
+        this.imageId = imageId;
     }
 
-    public View getView(int position, View view, ViewGroup parent) {
-        LayoutInflater inflater=context.getLayoutInflater();
-        View rowView=inflater.inflate(R.layout.row, null,true);
+    public View getView(int position, View convertView, ViewGroup parent) {
+        ViewHolder holder;
 
-        TextView txtTitle = (TextView) rowView.findViewById(R.id.title);
-        ImageView imageView = (ImageView) rowView.findViewById(R.id.icon);
+        if (convertView == null) {
+            LayoutInflater inflater = context.getLayoutInflater();
+            convertView = inflater.inflate(R.layout.row, parent, false);
+            holder = new ViewHolder();
+            holder.tvTitle = (TextView) convertView.findViewById(R.id.title);
+            holder.ivIcon = (ImageView) convertView.findViewById(R.id.icon);
+            convertView.setTag(holder);
+        } else {
+            holder = (ViewHolder) convertView.getTag();
+        }
 
-
-        txtTitle.setText(itemname[position]);
-        imageView.setImageResource(imgid[position]);
-        return rowView;
+        holder.ivIcon.setImageResource(imageId[position]);
+        holder.tvTitle.setText(itemName[position]);
+        return convertView;
 
     }
 
+    static class ViewHolder {
+        private TextView tvTitle;
+        private ImageView ivIcon;
+    }
 }

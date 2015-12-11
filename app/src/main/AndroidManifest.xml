@@ -50,12 +50,25 @@
             android:name=".FieldNavigation"
             android:configChanges="orientation"
             android:label="@string/activity_field_navigation_label"
-            android:screenOrientation="portrait" /><!-- ATTENTION: This was auto-generated to add Google Play services to your project for
-     App Indexing.  See https://g.co/AppIndexing/AndroidStudio for more information. -->
+            android:screenOrientation="portrait" />
+        <!--
+ ATTENTION: This was auto-generated to add Google Play services to your project for
+     App Indexing.  See https://g.co/AppIndexing/AndroidStudio for more information.
+        -->
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
+        <activity
+            android:name=".RoadNavigation"
+            android:configChanges="orientation"
+            android:label="@string/activity_road_navigation_label"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="com.jim.robotos_v2.ManualOverride"
+            android:configChanges="orientation"
+            android:label="@string/activity_manual_override_label"
+            android:screenOrientation="landscape" />
     </application>
 
 </manifest>

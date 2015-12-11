@@ -58,6 +58,7 @@ public class MainMenu extends AppCompatActivity {
                         openIntent = new Intent(MainMenu.this, FieldNavigation.class);
                         break;
                     case 1:
+                        openIntent = new Intent(MainMenu.this, RoadNavigation.class);
                         break;
                     case 2:
                         break;
@@ -66,10 +67,13 @@ public class MainMenu extends AppCompatActivity {
                     case 4:
                         break;
                     case 5:
+                        openIntent = new Intent(MainMenu.this, ManualOverride.class);
                         break;
                     case 6:
                         break;
                     case 7:
+                        break;
+                    case 8:
                         break;
                     default:
                         break;

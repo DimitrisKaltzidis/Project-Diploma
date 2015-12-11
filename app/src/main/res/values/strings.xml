@@ -4,6 +4,8 @@
     <string name="robot_os">Robot OS</string>
     <string name="version_2_0">Version 2.0</string>
     <string name="activity_field_navigation_label">Field Navigation</string>
+    <string name="activity_road_navigation_label">Road Navigation</string>
+    <string name="activity_manual_override_label">Manual Override</string>
     <string name="activity_main_menu_label">RobotOS v2</string>
     <string name="control_button">control_button</string>
     <string name="default_distance">---m</string>

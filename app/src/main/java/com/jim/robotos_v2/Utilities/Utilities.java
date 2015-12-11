@@ -16,7 +16,15 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.jim.robotos_v2.R;
+import com.jim.robotos_v2.RouteLogic.Point;
 import com.jim.robotos_v2.RouteLogic.Route;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.lang.Math.abs;
 
@@ -315,6 +323,85 @@ public class Utilities {
             Toast.makeText(context, "Please define a route", Toast.LENGTH_SHORT).show();
         }
         return running;
+    }
+
+    public static List<LatLng> decodePoly(String encoded) {
+
+        List<LatLng> poly = new ArrayList<LatLng>();
+        int index = 0, len = encoded.length();
+        int lat = 0, lng = 0;
+
+        while (index < len) {
+            int b, shift = 0, result = 0;
+            do {
+                b = encoded.charAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+            int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lat += dlat;
+
+            shift = 0;
+            result = 0;
+            do {
+                b = encoded.charAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+            int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lng += dlng;
+
+            LatLng p = new LatLng((((double) lat / 1E5)),
+                    (((double) lng / 1E5)));
+            poly.add(p);
+        }
+
+        return poly;
+    }
+
+    public static Route convertPathToRoute(String result,Route route) {
+
+        try {
+            // Tranform the string into a json object
+            final JSONObject json = new JSONObject(result);
+            JSONArray routeArray = json.getJSONArray("routes");
+            JSONObject routes = routeArray.getJSONObject(0);
+            JSONObject overviewPolylines = routes
+                    .getJSONObject("overview_polyline");
+            String encodedString = overviewPolylines.getString("points");
+            List<LatLng> list = decodePoly(encodedString);
+
+            for (LatLng latLng: list) {
+                route.addPoint(new Point(latLng,"Point "+route.getPointsNumber()));
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Log.e("Utilities", "drawPath: ");
+        }
+
+        return route;
+    }
+
+    public static String makeURL(LatLng start,LatLng finish) {
+        double sourceLat, sourceLong,  destLat, destLog;
+        sourceLat = start.latitude;
+        sourceLong = start.longitude;
+        destLat = finish.latitude;
+        destLog = finish.longitude;
+        
+        StringBuilder urlString = new StringBuilder();
+        urlString.append("http://maps.googleapis.com/maps/api/directions/json");
+        urlString.append("?origin=");// from
+        urlString.append(Double.toString(sourceLat));
+        urlString.append(",");
+        urlString.append(Double.toString(sourceLong));
+        urlString.append("&destination=");// to
+        urlString.append(Double.toString(destLat));
+        urlString.append(",");
+        urlString.append(Double.toString(destLog));
+        urlString.append("&sensor=false&mode=driving&alternatives=true");
+        return urlString.toString();
     }
 
 }

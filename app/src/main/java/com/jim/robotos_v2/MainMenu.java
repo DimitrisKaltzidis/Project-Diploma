@@ -61,6 +61,7 @@ public class MainMenu extends AppCompatActivity {
                         openIntent = new Intent(MainMenu.this, RoadNavigation.class);
                         break;
                     case 2:
+                        openIntent = new Intent(MainMenu.this, ColorDetection.class);
                         break;
                     case 3:
                         break;

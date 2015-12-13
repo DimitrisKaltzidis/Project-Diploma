@@ -156,7 +156,7 @@ public class ManualOverride extends AppCompatActivity {
                         String sbprint = sb.substring(0, endOfLineIndex);               // extract string
                         sb.delete(0, sb.length());                                      // and clear
                         Log.d("READ_FROM_ARDUINO", sbprint);
-                        tvDistance.setText(sbprint+"m");
+                        tvDistance.setText(sbprint+"cm");
                     }
                     break;
                 case Bluetooth.MESSAGE_DEVICE_NAME:

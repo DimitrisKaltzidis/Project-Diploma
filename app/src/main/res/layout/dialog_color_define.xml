@@ -1,0 +1,73 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <EditText
+        android:id="@+id/etRed"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:layout_marginTop="16dp"
+        android:hint="@string/red"
+        android:textColorHint="@color/red"
+        android:inputType="number" />
+
+    <EditText
+        android:id="@+id/etGreen"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:layout_marginTop="4dp"
+        android:fontFamily="sans-serif"
+        android:textColorHint="@color/green"
+        android:hint="@string/green"
+        android:inputType="number" />
+
+    <EditText
+        android:id="@+id/etBlue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:fontFamily="sans-serif"
+        android:hint="@string/blue"
+        android:textColorHint="@color/blue"
+        android:inputType="number" />
+
+    <EditText
+        android:id="@+id/etAlpha"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:fontFamily="sans-serif"
+        android:hint="@string/alpha"
+        android:textColorHint="@color/grey"
+        android:inputType="number" />
+
+    <ImageView
+        android:id="@+id/ivDetectionColorDialog"
+        android:layout_width="41dp"
+        android:layout_height="41dp"
+        android:layout_gravity="center"
+        android:layout_weight="1"
+        android:background="@color/colorPrimary"
+        android:contentDescription="@string/control_button"
+        android:scaleType="fitCenter"
+        android:src="@drawable/color_overlay" />
+
+  <!--  <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/save"
+        android:layout_marginTop="15dp"
+        android:textColor="@color/colorPrimary"
+        android:background="@color/background"
+        android:id="@+id/bSaveColor" />-->
+
+
+</LinearLayout>

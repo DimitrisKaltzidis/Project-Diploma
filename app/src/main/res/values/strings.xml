@@ -8,6 +8,14 @@
     <string name="activity_manual_override_label">Manual Override</string>
     <string name="activity_main_menu_label">RobotOS v2</string>
     <string name="control_button">control_button</string>
-    <string name="default_distance">---m</string>
+    <string name="default_distance">--cm</string>
     <string name="title_activity_maps">Map</string>
+    <string name="red">Red</string>
+    <string name="green">Green</string>
+    <string name="blue">Blue</string>
+    <string name="preview">Preview</string>
+    <string name="ok">OK</string>
+    <string name="new_color_selection">Specify a color RGBA</string>
+    <string name="save">SAVE</string>
+    <string name="alpha">Alpha</string>
 </resources>

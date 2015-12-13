@@ -22,6 +22,10 @@ import com.jim.robotos_v2.RouteLogic.Route;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -402,6 +406,22 @@ public class Utilities {
         urlString.append(Double.toString(destLog));
         urlString.append("&sensor=false&mode=driving&alternatives=true");
         return urlString.toString();
+    }
+
+    public static Scalar convertScalarHsv2Rgba(Scalar hsvColor) {
+        Mat pointMatRgba = new Mat();
+        Mat pointMatHsv = new Mat(1, 1, CvType.CV_8UC3, hsvColor);
+        Imgproc.cvtColor(pointMatHsv, pointMatRgba, Imgproc.COLOR_HSV2RGB_FULL, 4);
+
+        return new Scalar(pointMatRgba.get(0, 0));
+    }
+
+    public static Scalar convertScalarRgba2Hsv(Scalar rgbColor){
+        Mat pointMatHsv = new Mat();
+        Mat pointMatRgba = new Mat(1, 1, CvType.CV_8UC3, rgbColor);
+        Imgproc.cvtColor(pointMatRgba, pointMatHsv, Imgproc.COLOR_RGB2HSV_FULL, 4);
+
+        return new Scalar(pointMatHsv.get(0, 0));
     }
 
 }

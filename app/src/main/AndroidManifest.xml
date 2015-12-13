@@ -12,6 +12,22 @@
     -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
+    <!--For openCv-->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.front"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.front.autofocus"
+        android:required="false" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/logo"
@@ -65,7 +81,13 @@
             android:label="@string/activity_road_navigation_label"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.jim.robotos_v2.ManualOverride"
+            android:name=".ManualOverride"
+            android:configChanges="orientation"
+            android:label="@string/activity_manual_override_label"
+            android:screenOrientation="landscape" />
+        <activity android:name=".VoiceOverride" />
+        <activity
+            android:name=".ColorDetection"
             android:configChanges="orientation"
             android:label="@string/activity_manual_override_label"
             android:screenOrientation="landscape" />

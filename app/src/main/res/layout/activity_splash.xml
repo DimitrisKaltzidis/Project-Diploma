@@ -16,7 +16,7 @@
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
         android:contentDescription="@string/logoImage"
-        android:src="@drawable/logo"/>
+        android:src="@drawable/logo_small"/>
 
     <TextView
         android:layout_width="wrap_content"

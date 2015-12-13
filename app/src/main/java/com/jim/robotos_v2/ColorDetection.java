@@ -61,7 +61,7 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
     private String command = "STOP", previousCommand = "STOP";
     private Rect temp;
     private org.opencv.core.Point rectTopLeft;
-
+    static int distanceToObject = 200000;
 
     private CameraBridgeViewBase mOpenCvCameraView;
 
@@ -96,6 +96,34 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
 
         bt = new Bluetooth(this, mHandler);
         connectService();
+
+        (new Thread(new Runnable()
+        {
+
+            @Override
+            public void run()
+            {
+                while (!Thread.interrupted())
+                    try
+                    {
+                        Thread.sleep(250);
+                        runOnUiThread(new Runnable() // start actions in UI thread
+                        {
+
+                            @Override
+                            public void run()
+                            {
+                                if(mIsColorSelected)
+                               Utilities.giveDirectionColorDetection(center,distanceToObject,bottomLineHeight,leftLineWidth,rightLineWidth,ivDirection,bt,getApplicationContext());
+                            }
+                        });
+                    }
+                    catch (InterruptedException e)
+                    {
+                        // ooops
+                    }
+            }
+        })).start();
     }
 
     private void initializeGraphicComponents() {
@@ -153,7 +181,7 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                center = new org.opencv.core.Point(-1,-1);
+                center = new org.opencv.core.Point(-1, -1);
             }
 
 
@@ -164,7 +192,7 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
             Core.line(mRgba, new org.opencv.core.Point(cameraViewWidth, bottomLineHeight), new org.opencv.core.Point(0, bottomLineHeight), new Scalar(154, 189, 47), 6);
             //    Log.d("TAG", "total="+cameraViewWidth+" middle=" + cameraViewWidth / 2 + " right=" + rightLineWidth + " left=" + leftLineWidth);
 
-            msHandler.post(new Runnable() {
+            /*msHandler.post(new Runnable() {
 
                 @Override
                 public void run() {
@@ -177,7 +205,11 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
                             } else if (center.x > rightLineWidth) {
                                 command = "RIGHT";
                             } else if ((center.x >= leftLineWidth) && (center.x <= rightLineWidth)) {
-                                command = "FORWARD";
+                                if (distanceToObject < Preferences.loadPrefsInt("DISTANCE_TO_STOP_FROM_OBSTACLE_CM", 50, getApplicationContext())) {
+                                    command = "STOP";
+                                } else {
+                                    command = "FORWARD";
+                                }
                             } else {
                                 command = "RIGHT";
                             }
@@ -190,7 +222,9 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
                         Utilities.setDirectionImage("STOP", ivDirection, bt);
                     }
                 }
-            });
+            });*/
+
+
         }
 
 
@@ -313,6 +347,7 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
                         sb.delete(0, sb.length());                                      // and clear
                         //  Log.d("READ_FROM_ARDUINO", sbprint);
                         tvDistance.setText(sbprint + "cm");
+                        distanceToObject = Integer.parseInt(sbprint);
                     }
                     break;
                 case Bluetooth.MESSAGE_DEVICE_NAME:

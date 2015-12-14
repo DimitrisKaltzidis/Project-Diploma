@@ -12,7 +12,7 @@
     -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
-    <!--For openCv-->
+    <!-- For openCv -->
     <uses-permission android:name="android.permission.CAMERA" />
 
     <uses-feature
@@ -85,12 +85,36 @@
             android:configChanges="orientation"
             android:label="@string/activity_manual_override_label"
             android:screenOrientation="landscape" />
-        <activity android:name=".VoiceOverride" />
+        <activity android:name=".VoiceOverride"
+            android:configChanges="orientation"
+            android:label="@string/activity_voice_override_label"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".ColorDetection"
             android:configChanges="orientation"
-            android:label="@string/activity_manual_override_label"
+            android:label="@string/activity_color_detection_label"
             android:screenOrientation="landscape" />
+
+        <activity
+            android:name=".FaceRecognition"
+            android:configChanges="orientation"
+            android:label="@string/activity_face_recognition_label"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".Settings"
+            android:configChanges="orientation"
+            android:label="@string/activity_settings_label"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ScenarioMode"
+            android:configChanges="orientation"
+            android:label="@string/activity_scenario_mode_label"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ObstacleAvoidance"
+            android:configChanges="orientation"
+            android:label="@string/activity_obstacle_avoidance_label"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

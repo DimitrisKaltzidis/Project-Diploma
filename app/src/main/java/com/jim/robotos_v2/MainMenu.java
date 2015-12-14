@@ -64,17 +64,22 @@ public class MainMenu extends AppCompatActivity {
                         openIntent = new Intent(MainMenu.this, ColorDetection.class);
                         break;
                     case 3:
+                        openIntent = new Intent(MainMenu.this, FaceRecognition.class);
                         break;
                     case 4:
+                        openIntent = new Intent(MainMenu.this, ObstacleAvoidance.class);
                         break;
                     case 5:
                         openIntent = new Intent(MainMenu.this, ManualOverride.class);
                         break;
                     case 6:
+                        openIntent = new Intent(MainMenu.this, VoiceOverride.class);
                         break;
                     case 7:
+                        openIntent = new Intent(MainMenu.this, ScenarioMode.class);
                         break;
                     case 8:
+                        openIntent = new Intent(MainMenu.this, Settings.class);
                         break;
                     default:
                         break;

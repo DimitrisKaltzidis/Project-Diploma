@@ -39,11 +39,11 @@ public class ManualOverride extends AppCompatActivity {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         command = "FORWARD";
-                        Utilities.setDirectionImage(command,ivDirection,bt);
+                        Utilities.setDirectionImage(command, ivDirection, bt);
                         return true;
                     case MotionEvent.ACTION_UP:
                         command = "STOP";
-                        Utilities.setDirectionImage(command,ivDirection,bt);
+                        Utilities.setDirectionImage(command, ivDirection, bt);
                         return true;
                 }
 
@@ -58,11 +58,11 @@ public class ManualOverride extends AppCompatActivity {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         command = "BACKWARD";
-                        Utilities.setDirectionImage(command,ivDirection,bt);
+                        Utilities.setDirectionImage(command, ivDirection, bt);
                         return true;
                     case MotionEvent.ACTION_UP:
                         command = "STOP";
-                        Utilities.setDirectionImage(command,ivDirection,bt);
+                        Utilities.setDirectionImage(command, ivDirection, bt);
                         return true;
                 }
                 return false;
@@ -76,11 +76,11 @@ public class ManualOverride extends AppCompatActivity {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         command = "LEFT";
-                        Utilities.setDirectionImage(command,ivDirection,bt);
+                        Utilities.setDirectionImage(command, ivDirection, bt);
                         return true;
                     case MotionEvent.ACTION_UP:
                         command = "STOP";
-                        Utilities.setDirectionImage(command,ivDirection,bt);
+                        Utilities.setDirectionImage(command, ivDirection, bt);
                         return true;
                 }
                 return false;
@@ -94,11 +94,11 @@ public class ManualOverride extends AppCompatActivity {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         command = "RIGHT";
-                        Utilities.setDirectionImage(command,ivDirection,bt);
+                        Utilities.setDirectionImage(command, ivDirection, bt);
                         return true;
                     case MotionEvent.ACTION_UP:
                         command = "STOP";
-                        Utilities.setDirectionImage(command,ivDirection,bt);
+                        Utilities.setDirectionImage(command, ivDirection, bt);
                         return true;
                 }
                 return false;
@@ -137,9 +137,9 @@ public class ManualOverride extends AppCompatActivity {
 
     static String TAG = "HANDLER";
 
-    private static final Handler mHandler = new Handler() {
+    Handler mHandler = new Handler(new Handler.Callback() {
         @Override
-        public void handleMessage(Message msg) {
+        public boolean handleMessage(Message msg) {
             switch (msg.what) {
                 case Bluetooth.MESSAGE_STATE_CHANGE:
                     Log.d(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
@@ -156,7 +156,7 @@ public class ManualOverride extends AppCompatActivity {
                         String sbprint = sb.substring(0, endOfLineIndex);               // extract string
                         sb.delete(0, sb.length());                                      // and clear
                         Log.d("READ_FROM_ARDUINO", sbprint);
-                        tvDistance.setText(sbprint+"cm");
+                        tvDistance.setText(sbprint + "cm");
                     }
                     break;
                 case Bluetooth.MESSAGE_DEVICE_NAME:
@@ -166,13 +166,14 @@ public class ManualOverride extends AppCompatActivity {
                     Log.d(TAG, "MESSAGE_TOAST " + msg);
                     break;
             }
+            return false;
         }
-    };
+    });
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Utilities.setDirectionImage("STOP",ivDirection,bt);
+        Utilities.setDirectionImage("STOP", ivDirection, bt);
         bt.stop();
         finish();
     }
@@ -180,7 +181,7 @@ public class ManualOverride extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        Utilities.setDirectionImage("STOP",ivDirection,bt);
+        Utilities.setDirectionImage("STOP", ivDirection, bt);
         bt.stop();
         finish();
     }

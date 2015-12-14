@@ -307,9 +307,9 @@ public class RoadNavigation extends AppCompatActivity  implements OnMapReadyCall
 
     static String TAG = "HANDLER";
 
-    private static final Handler mHandler = new Handler() {
+    Handler mHandler = new Handler(new Handler.Callback() {
         @Override
-        public void handleMessage(Message msg) {
+        public boolean handleMessage(Message msg) {
             switch (msg.what) {
                 case Bluetooth.MESSAGE_STATE_CHANGE:
                     Log.d(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
@@ -326,7 +326,7 @@ public class RoadNavigation extends AppCompatActivity  implements OnMapReadyCall
                         String sbprint = sb.substring(0, endOfLineIndex);               // extract string
                         sb.delete(0, sb.length());                                      // and clear
                         Log.d("READ_FROM_ARDUINO", sbprint);
-                        // status.setText("Obstacle in "+sbprint+" cm");
+                        //tvDistance.setText(sbprint + "cm");
                     }
                     break;
                 case Bluetooth.MESSAGE_DEVICE_NAME:
@@ -336,8 +336,9 @@ public class RoadNavigation extends AppCompatActivity  implements OnMapReadyCall
                     Log.d(TAG, "MESSAGE_TOAST " + msg);
                     break;
             }
+            return false;
         }
-    };
+    });
 
     private class connectAsyncTask extends AsyncTask<Void, Void, String> {
         private ProgressDialog progressDialog;

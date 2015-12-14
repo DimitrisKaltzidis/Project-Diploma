@@ -50,18 +50,16 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
     private ColorBlobDetector mDetector;
     private Mat mSpectrum;
     private Size SPECTRUM_SIZE;
-    private Scalar CONTOUR_COLOR;
     private org.opencv.core.Point center;
     private Bluetooth bt;
     private double bottomLineHeight, cameraViewHeight = 0, cameraViewWidth = 0, leftLineWidth = 0, rightLineWidth = 0;
-    Handler msHandler = new Handler();
+    private Thread directionThread;
     private static StringBuilder sb = new StringBuilder();
     private ImageView ivDirection, ivBluetooth, ivDetectionColor;
     private static TextView tvDistance;
-    private String command = "STOP", previousCommand = "STOP";
     private Rect temp;
     private org.opencv.core.Point rectTopLeft;
-    static int distanceToObject = 200000;
+    private static int distanceToObject = 200000;
 
     private CameraBridgeViewBase mOpenCvCameraView;
 
@@ -97,33 +95,34 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
         bt = new Bluetooth(this, mHandler);
         connectService();
 
-        (new Thread(new Runnable()
-        {
+        directionThread = new Thread(new Runnable() {
 
             @Override
-            public void run()
-            {
+            public void run() {
                 while (!Thread.interrupted())
-                    try
-                    {
-                        Thread.sleep(250);
+                    try {
+                        Log.d(TAG, "run: "+Thread.interrupted());
+                        Thread.sleep(Preferences.loadPrefsInt("COMMUNICATION_LOOP_REPEAT_TIME", 100, getApplicationContext()));
                         runOnUiThread(new Runnable() // start actions in UI thread
                         {
 
                             @Override
-                            public void run()
-                            {
-                                if(mIsColorSelected)
-                               Utilities.giveDirectionColorDetection(center,distanceToObject,bottomLineHeight,leftLineWidth,rightLineWidth,ivDirection,bt,getApplicationContext());
+                            public void run() {
+                                Log.d(TAG, "run: 2"+Thread.interrupted());
+                                if (mIsColorSelected)
+                                    Utilities.giveDirectionColorDetection(center, distanceToObject, bottomLineHeight, leftLineWidth, rightLineWidth, ivDirection, bt, getApplicationContext());
                             }
                         });
-                    }
-                    catch (InterruptedException e)
-                    {
-                        // ooops
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        Log.e(TAG, "run: Direction Thread interrupted");
+                        break;
                     }
             }
-        })).start();
+        });
+
+        directionThread.start();
+
     }
 
     private void initializeGraphicComponents() {
@@ -142,15 +141,12 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
         mBlobColorRgba = new Scalar(255);
         mBlobColorHsv = new Scalar(255);
         SPECTRUM_SIZE = new Size(200, 64);
-        CONTOUR_COLOR = new Scalar(255, 0, 0, 255);
         center = null;
         bottomLineHeight = (double) Preferences.loadPrefsInt("BOTTOM_LINE_VALUE", 500, getApplicationContext());
         cameraViewHeight = (double) mOpenCvCameraView.getHeight();
         cameraViewWidth = (double) mOpenCvCameraView.getWidth();
         leftLineWidth = (double) 1 * (cameraViewWidth / 4);
         rightLineWidth = (double) 2 * (cameraViewWidth / 4);
-        /*leftLineWidth = (cameraViewWidth / 2) - 100;
-        rightLineWidth = (cameraViewWidth / 2) + 100;*/
     }
 
     @Override
@@ -165,14 +161,12 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
         if (mIsColorSelected) {
             mDetector.process(mRgba);
             List<MatOfPoint> contours = mDetector.getContours();
-            Log.e(TAG, "Contours count: " + contours.size());
-            //Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
 
             try {
                 if (!contours.isEmpty()) {
                     temp = Imgproc.boundingRect(contours.get(0));
                     Core.rectangle(mRgba, temp.tl(), temp.br(), new Scalar(238, 233, 60), 3);
-                    //     org.opencv.core.Point center = new org.opencv.core.Point((temp.x+temp.width)/2,(temp.y + temp.height)/2);
+
                     rectTopLeft = temp.tl();
 
                     center = new org.opencv.core.Point(rectTopLeft.x + (temp.width / 2), rectTopLeft.y + (temp.height / 2));
@@ -190,39 +184,7 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
             Core.line(mRgba, new org.opencv.core.Point(rightLineWidth, cameraViewHeight), new org.opencv.core.Point(rightLineWidth, 0), new Scalar(255, 0, 0, 255), 5);
 
             Core.line(mRgba, new org.opencv.core.Point(cameraViewWidth, bottomLineHeight), new org.opencv.core.Point(0, bottomLineHeight), new Scalar(154, 189, 47), 6);
-            //    Log.d("TAG", "total="+cameraViewWidth+" middle=" + cameraViewWidth / 2 + " right=" + rightLineWidth + " left=" + leftLineWidth);
 
-            /*msHandler.post(new Runnable() {
-
-                @Override
-                public void run() {
-                    try {
-                        if (center.y > bottomLineHeight) {
-                            command = "STOP";
-                        } else {
-                            if (center.x < leftLineWidth) {
-                                command = "LEFT";
-                            } else if (center.x > rightLineWidth) {
-                                command = "RIGHT";
-                            } else if ((center.x >= leftLineWidth) && (center.x <= rightLineWidth)) {
-                                if (distanceToObject < Preferences.loadPrefsInt("DISTANCE_TO_STOP_FROM_OBSTACLE_CM", 50, getApplicationContext())) {
-                                    command = "STOP";
-                                } else {
-                                    command = "FORWARD";
-                                }
-                            } else {
-                                command = "RIGHT";
-                            }
-                        }
-                        if (!command.equals(previousCommand)) {
-                            Utilities.setDirectionImage(command, ivDirection, bt);
-                            previousCommand = command;
-                        }
-                    } catch (Exception e) {
-                        Utilities.setDirectionImage("STOP", ivDirection, bt);
-                    }
-                }
-            });*/
 
 
         }
@@ -299,12 +261,31 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
         super.onPause();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
+
+        Utilities.setDirectionImage("STOP", ivDirection, bt);
+        bt.stop();
+        directionThread.interrupt();
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        if (mOpenCvCameraView != null)
+            mOpenCvCameraView.disableView();
+
+        Utilities.setDirectionImage("STOP", ivDirection, bt);
+        bt.stop();
+        directionThread.interrupt();
     }
 
     public void onDestroy() {
         super.onDestroy();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
+
+        Utilities.setDirectionImage("STOP", ivDirection, bt);
+        bt.stop();
+        directionThread.interrupt();
     }
 
     public void connectService() {
@@ -326,10 +307,9 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
         }
     }
 
-
-    private static final Handler mHandler = new Handler() {
+     Handler mHandler = new Handler(new Handler.Callback() {
         @Override
-        public void handleMessage(Message msg) {
+        public boolean handleMessage(Message msg) {
             switch (msg.what) {
                 case Bluetooth.MESSAGE_STATE_CHANGE:
                     Log.d(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
@@ -347,7 +327,12 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
                         sb.delete(0, sb.length());                                      // and clear
                         //  Log.d("READ_FROM_ARDUINO", sbprint);
                         tvDistance.setText(sbprint + "cm");
-                        distanceToObject = Integer.parseInt(sbprint);
+                        try {
+                            distanceToObject = Integer.parseInt(sbprint);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Log.e("ERROR", "could not parse string to integer");
+                        }
                     }
                     break;
                 case Bluetooth.MESSAGE_DEVICE_NAME:
@@ -357,8 +342,9 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
                     Log.d(TAG, "MESSAGE_TOAST " + msg);
                     break;
             }
+            return false;
         }
-    };
+    });
 
     public void detectionColorClicked(View view) {
 

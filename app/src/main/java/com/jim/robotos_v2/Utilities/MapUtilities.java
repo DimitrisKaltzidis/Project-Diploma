@@ -1,7 +1,9 @@
 package com.jim.robotos_v2.Utilities;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -55,7 +57,7 @@ public class MapUtilities {
     }
 
 
-    public static Marker placeRobotMarkerOnMap(Marker marker,GoogleMap mMap, LatLng location, boolean animateTheCamera,Resources res) {
+    public static Marker placeRobotMarkerOnMap(Marker marker, GoogleMap mMap, LatLng location, boolean animateTheCamera, Resources res, Context context) {
         try {
             marker.remove();
         } catch (Exception e) {
@@ -68,6 +70,8 @@ public class MapUtilities {
         if (animateTheCamera)
             animateCameraLatLng(mMap,location,res);
 
+        Log.d("ROBOT_LOCATION", "Latitude: " +location.latitude+" Longitude: "+location.longitude);
+        Toast.makeText(context,"Latitude: " +location.latitude+" Longitude: "+location.longitude,Toast.LENGTH_LONG).show();
         return marker;
 
     }

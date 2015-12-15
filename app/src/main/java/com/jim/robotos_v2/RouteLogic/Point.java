@@ -16,6 +16,8 @@ public class Point {
         this.name = name;
     }
 
+    public Point() {
+    }
     public LatLng getPosition() {
         return position;
     }
@@ -30,7 +32,6 @@ public class Point {
     public void setPosition(LatLng position) {
         this.position = position;
     }
-
 
     public void setVisited() {
         this.isVisited = true;

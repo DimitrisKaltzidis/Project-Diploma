@@ -21,7 +21,11 @@
     <string name="blue">Blue</string>
     <string name="preview">Preview</string>
     <string name="ok">OK</string>
+    <string name="add">ADD</string>
     <string name="new_color_selection">Specify a color RGBA</string>
+    <string name="new_point">Add new Point to Route</string>
     <string name="save">SAVE</string>
     <string name="alpha">Alpha</string>
+    <string name="latitude">Latitude</string>
+    <string name="longitude">Longitude</string>
 </resources>

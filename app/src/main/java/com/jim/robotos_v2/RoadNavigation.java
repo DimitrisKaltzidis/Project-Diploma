@@ -194,7 +194,7 @@ public class RoadNavigation extends AppCompatActivity  implements OnMapReadyCall
     @Override
     public void onLocationChanged(Location location) {
         robotLocation = location;
-        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources());
+        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(),getApplicationContext());
     }
 
     @Override
@@ -210,7 +210,7 @@ public class RoadNavigation extends AppCompatActivity  implements OnMapReadyCall
             endLocation = latLng;
             endPointCounter++;
             mMap.setOnMapClickListener(null);
-            connectAsyncTask communicate = new connectAsyncTask(Utilities.makeURL(startLocation,endLocation));
+            ConnectAsyncTask communicate = new ConnectAsyncTask(Utilities.makeURL(startLocation,endLocation));
             communicate.execute();
         }
        // route.addPoint(new Point(latLng, "Point " + route.getPointsNumber()));
@@ -247,7 +247,7 @@ public class RoadNavigation extends AppCompatActivity  implements OnMapReadyCall
     }
 
     public void showMyLocationClicked(View view) {
-        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources());
+        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(),getApplicationContext());
 
     }
 
@@ -273,7 +273,7 @@ public class RoadNavigation extends AppCompatActivity  implements OnMapReadyCall
                 endLocation = Utilities.convertLocationToLatLng(robotLocation);
                 endPointCounter++;
                 mMap.setOnMapClickListener(null);
-                connectAsyncTask communicate = new connectAsyncTask(Utilities.makeURL(startLocation,endLocation));
+                ConnectAsyncTask communicate = new ConnectAsyncTask(Utilities.makeURL(startLocation,endLocation));
                 communicate.execute();
             }
             /*route.addPoint(new Point(new LatLng(robotLocation.getLatitude(), robotLocation.getLongitude()), "Point " + route.getPointsNumber()));
@@ -340,11 +340,11 @@ public class RoadNavigation extends AppCompatActivity  implements OnMapReadyCall
         }
     });
 
-    private class connectAsyncTask extends AsyncTask<Void, Void, String> {
+    private class ConnectAsyncTask extends AsyncTask<Void, Void, String> {
         private ProgressDialog progressDialog;
         String url;
 
-        connectAsyncTask(String urlPass) {
+        ConnectAsyncTask(String urlPass) {
             url = urlPass;
         }
 

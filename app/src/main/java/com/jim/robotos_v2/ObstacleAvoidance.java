@@ -6,16 +6,24 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.speech.tts.TextToSpeech;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -35,14 +43,14 @@ import com.jim.robotos_v2.Utilities.Utilities;
 
 import java.util.Locale;
 
-public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapClickListener, SensorEventListener {
+public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapClickListener, SensorEventListener,View.OnLongClickListener  {
     private GoogleMap mMap;
     private LocationRequest mLocationRequest;
     private GoogleApiClient mGoogleApiClient;
     private SensorManager mSensorManager;
     private float compassBearingDegrees = 0f;
     private float currentDegree = 0f, currentDegreeNorth = 0f;//for the image rotation
-    private ImageView ivCompass, ivDirection, ivCompassNorth, ivPlayStop, ivBluetooth;
+    private ImageView ivCompass, ivDirection, ivCompassNorth, ivPlayStop, ivBluetooth,ivAddToRoute;
     private TextView tvDistance;
     private Location robotLocation;
     private Route route;
@@ -89,6 +97,8 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
 
         bt = new Bluetooth(this, mHandler);
         connectService();
+
+        ivAddToRoute.setOnLongClickListener(this);
     }
 
     private void initializeGraphicComponents() {
@@ -98,6 +108,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
         ivPlayStop = (ImageView) findViewById(R.id.ivPlayStop);
         ivBluetooth = (ImageView) findViewById(R.id.ivBluetooth);
         tvDistance = (TextView) findViewById(R.id.tvDistance);
+        ivAddToRoute = (ImageView) findViewById(R.id.ivAddPointToPath);
     }
 
 
@@ -189,7 +200,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
     @Override
     public void onLocationChanged(Location location) {
         robotLocation = location;
-        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources());
+        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(),getApplicationContext());
     }
 
     @Override
@@ -200,7 +211,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
     public void onMapClick(LatLng latLng) {
         route.addPoint(new Point(latLng, "Point " + route.getPointsNumber()));
         MapUtilities.drawPathOnMap(mMap, route, getResources());
-        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources());
+        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(),getApplicationContext());
     }
 
     @Override
@@ -232,7 +243,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
     }
 
     public void showMyLocationClicked(View view) {
-        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources());
+        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(),getApplicationContext());
 
     }
 
@@ -251,7 +262,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
         if (!running) {
             route.addPoint(new Point(new LatLng(robotLocation.getLatitude(), robotLocation.getLongitude()), "Point " + route.getPointsNumber()));
             MapUtilities.drawPathOnMap(mMap, route, getResources());
-            robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources());
+            robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(),getApplicationContext());
         }
     }
 
@@ -312,4 +323,77 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
             return false;
         }
     });
+
+    @Override
+    public boolean onLongClick(View v) {
+
+        final Point pointToAdd = new Point(new LatLng(-31.90, 115.86), "Point " + route.getPointsNumber());
+
+        final MaterialDialog dialog = new MaterialDialog.Builder(this)
+                .title(R.string.new_point)
+                .titleColor(getResources().getColor(R.color.colorAccent))
+                .customView(R.layout.dialog_new_point_define, true)
+                .positiveText(R.string.add)
+                .backgroundColorRes(R.color.background)
+                .negativeText(android.R.string.cancel)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        if (pointToAdd.getPosition().latitude != -31.90 && pointToAdd.getPosition().longitude != 115.86) {
+                            route.addPoint(pointToAdd);
+                            MapUtilities.drawPathOnMap(mMap, route, getResources());
+                            robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(),getApplicationContext());
+                            dialog.dismiss();
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Please define coordinates for the new Point", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }).build();
+
+        final EditText etLatitude = (EditText) dialog.getCustomView().findViewById(R.id.etLatitude);
+        final EditText etLongitude = (EditText) dialog.getCustomView().findViewById(R.id.etLongitude);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            etLatitude.setTextColor(getColor(R.color.green));
+            etLongitude.setTextColor(getColor(R.color.colorPrimaryDark));
+        }
+
+        etLatitude.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                pointToAdd.setPosition(new LatLng(Double.parseDouble(s.toString()), pointToAdd.getPosition().longitude));
+            }
+        });
+
+        etLongitude.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                pointToAdd.setPosition(new LatLng(pointToAdd.getPosition().latitude, Double.parseDouble(s.toString())));
+            }
+        });
+
+        dialog.show();
+        return false;
+    }
 }

@@ -39,6 +39,7 @@ import com.jim.robotos_v2.RouteLogic.Point;
 import com.jim.robotos_v2.RouteLogic.Route;
 import com.jim.robotos_v2.Utilities.Bluetooth;
 import com.jim.robotos_v2.Utilities.MapUtilities;
+import com.jim.robotos_v2.Utilities.Preferences;
 import com.jim.robotos_v2.Utilities.Utilities;
 
 import java.util.Locale;
@@ -59,8 +60,9 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
     private String command = "STOP";
     private TextToSpeech textToSpeech;
     private Bluetooth bt;
+    private Thread directionThread;
     private static StringBuilder sb = new StringBuilder();
-
+    private int distanceToObstacle = 2000;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,6 +101,33 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
         connectService();
 
         ivAddToRoute.setOnLongClickListener(this);
+
+        directionThread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                while (!Thread.interrupted())
+                    try {
+                        Thread.sleep(Preferences.loadPrefsInt("COMMUNICATION_LOOP_REPEAT_TIME", 100, getApplicationContext()));
+                        runOnUiThread(new Runnable() // start actions in UI thread
+                        {
+
+                            @Override
+                            public void run() {
+
+                                /*if (mIsColorSelected)
+                                    Utilities.giveDirectionColorDetection(center, distanceToObject, bottomLineHeight, leftLineWidth, rightLineWidth, ivDirection, bt, getApplicationContext());
+                       */     }
+                        });
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        Log.e(TAG, "run: Direction Thread interrupted");
+                        break;
+                    }
+            }
+        });
+
+        directionThread.start();
     }
 
     private void initializeGraphicComponents() {
@@ -308,9 +337,16 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
                     int endOfLineIndex = sb.indexOf("\r\n");                            // determine the end-of-line
                     if (endOfLineIndex > 0) {                                            // if end-of-line,
                         String sbprint = sb.substring(0, endOfLineIndex);               // extract string
-                        sb.delete(0, sb.length());                                      // and clear
+                        sb.delete(0, sb.length());   // and clear
+
                         Log.d("READ_FROM_ARDUINO", sbprint);
                         tvDistance.setText(sbprint + "cm");
+                        try {
+                            distanceToObstacle = Integer.parseInt(sbprint);
+                        }catch (Exception e){
+                            e.printStackTrace();
+                            Log.e(TAG, "handleMessage: CRASH CONVERSION");
+                        }
                     }
                     break;
                 case Bluetooth.MESSAGE_DEVICE_NAME:

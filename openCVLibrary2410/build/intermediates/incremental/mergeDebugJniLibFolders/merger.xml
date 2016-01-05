@@ -1,2 +1,2 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merger version="3"><dataSet config="main"><source path="C:\Users\Jim\AndroidStudioProjects\RobotOS_V2\openCVLibrary2410\src\main\jniLibs"/></dataSet><dataSet config="debug"><source path="C:\Users\Jim\AndroidStudioProjects\RobotOS_V2\openCVLibrary2410\src\debug\jniLibs"/></dataSet></merger>
+<merger version="3"><dataSet config="main"><source path="/home/jim/StudioProjects/RobotOS_V2/openCVLibrary2410/src/main/jniLibs"/></dataSet><dataSet config="debug"><source path="/home/jim/StudioProjects/RobotOS_V2/openCVLibrary2410/src/debug/jniLibs"/></dataSet></merger>

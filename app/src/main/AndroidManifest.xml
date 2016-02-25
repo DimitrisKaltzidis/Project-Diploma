@@ -114,7 +114,7 @@
             android:name=".ObstacleAvoidance"
             android:configChanges="orientation"
             android:label="@string/activity_obstacle_avoidance_label"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="landscape" />
     </application>
 
 </manifest>

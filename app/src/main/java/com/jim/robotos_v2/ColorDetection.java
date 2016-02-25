@@ -167,6 +167,11 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
                     temp = Imgproc.boundingRect(contours.get(0));
                     Core.rectangle(mRgba, temp.tl(), temp.br(), new Scalar(238, 233, 60), 3);
 
+                    for (int i = 1; i < contours.size(); i++) {
+                        temp = Imgproc.boundingRect(contours.get(i));
+                        Core.rectangle(mRgba, temp.tl(), temp.br(), new Scalar(238, 233, 60), 3);
+                    }
+
                     rectTopLeft = temp.tl();
 
                     center = new org.opencv.core.Point(rectTopLeft.x + (temp.width / 2), rectTopLeft.y + (temp.height / 2));

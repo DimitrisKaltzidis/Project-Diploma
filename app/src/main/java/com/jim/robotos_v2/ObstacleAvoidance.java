@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -42,16 +43,23 @@ import com.jim.robotos_v2.Utilities.MapUtilities;
 import com.jim.robotos_v2.Utilities.Preferences;
 import com.jim.robotos_v2.Utilities.Utilities;
 
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+
 import java.util.Locale;
 
-public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapClickListener, SensorEventListener,View.OnLongClickListener  {
+public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapClickListener, SensorEventListener, View.OnLongClickListener, View.OnTouchListener, CameraBridgeViewBase.CvCameraViewListener2 {
     private GoogleMap mMap;
     private LocationRequest mLocationRequest;
     private GoogleApiClient mGoogleApiClient;
     private SensorManager mSensorManager;
     private float compassBearingDegrees = 0f;
     private float currentDegree = 0f, currentDegreeNorth = 0f;//for the image rotation
-    private ImageView ivCompass, ivDirection, ivCompassNorth, ivPlayStop, ivBluetooth,ivAddToRoute;
+    private ImageView ivCompass, ivDirection, ivCompassNorth, ivPlayStop, ivBluetooth, ivAddToRoute;
     private TextView tvDistance;
     private Location robotLocation;
     private Route route;
@@ -63,10 +71,37 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
     private Thread directionThread;
     private static StringBuilder sb = new StringBuilder();
     private int distanceToObstacle = 2000;
+
+    private Mat mRgba;
+
+    private CameraBridgeViewBase mOpenCvCameraView;
+
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+        @Override
+        public void onManagerConnected(int status) {
+            switch (status) {
+                case LoaderCallbackInterface.SUCCESS: {
+                    Log.i(TAG, "OpenCV loaded successfully");
+                    mOpenCvCameraView.enableView();
+                    //   mOpenCvCameraView.setOnTouchListener(ObstacleAvoidance.this);
+                }
+                break;
+                default: {
+                    super.onManagerConnected(status);
+                }
+                break;
+            }
+        }
+    };
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_obstacle_avoidance);
+
+        mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.jcvColorDetection);
+        mOpenCvCameraView.setCvCameraViewListener(this);
 
         initializeGraphicComponents();
 
@@ -117,7 +152,8 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
 
                                 /*if (mIsColorSelected)
                                     Utilities.giveDirectionColorDetection(center, distanceToObject, bottomLineHeight, leftLineWidth, rightLineWidth, ivDirection, bt, getApplicationContext());
-                       */     }
+                       */
+                            }
                         });
                     } catch (InterruptedException e) {
                         e.printStackTrace();
@@ -167,6 +203,12 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
 
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION),
                 SensorManager.SENSOR_DELAY_GAME);
+
+        if (!OpenCVLoader.initDebug()) {
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_10, this, mLoaderCallback);
+        } else {
+            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+        }
     }
 
 
@@ -229,7 +271,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
     @Override
     public void onLocationChanged(Location location) {
         robotLocation = location;
-        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(),getApplicationContext());
+        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(), getApplicationContext());
     }
 
     @Override
@@ -240,7 +282,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
     public void onMapClick(LatLng latLng) {
         route.addPoint(new Point(latLng, "Point " + route.getPointsNumber()));
         MapUtilities.drawPathOnMap(mMap, route, getResources());
-        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(),getApplicationContext());
+        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(), getApplicationContext());
     }
 
     @Override
@@ -249,7 +291,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
             compassBearingDegrees = Utilities.correctCompassBearing(Math.round(event.values[0]), robotLocation);
             currentDegree = Utilities.compassAnimationHandler(ivCompass, compassBearingDegrees, currentDegree);
             currentDegreeNorth = Utilities.compassNorthIconHandler(ivCompassNorth, compassBearingDegrees, currentDegreeNorth);
-            command = Utilities.giveDirection(compassBearingDegrees, ivDirection, ivCompass, route, robotLocation, this, command, mMap, getResources(), tvDistance, textToSpeech,bt);
+            command = Utilities.giveDirection(compassBearingDegrees, ivDirection, ivCompass, route, robotLocation, this, command, mMap, getResources(), tvDistance, textToSpeech, bt);
             //  Log.e("DIRECTION", command);
 
             if (command.equals("FINISH")) {
@@ -261,7 +303,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
                 route.clearRoute();
 
 
-                Utilities.setDirectionImage("STOP", ivDirection,bt);
+                Utilities.setDirectionImage("STOP", ivDirection, bt);
             }
         }
     }
@@ -272,7 +314,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
     }
 
     public void showMyLocationClicked(View view) {
-        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(),getApplicationContext());
+        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(), getApplicationContext());
 
     }
 
@@ -284,14 +326,14 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
 
         route.clearRoute();
 
-        Utilities.setDirectionImage("STOP", ivDirection,bt);
+        Utilities.setDirectionImage("STOP", ivDirection, bt);
     }
 
     public void addMyLocationToRoute(View view) {
         if (!running) {
             route.addPoint(new Point(new LatLng(robotLocation.getLatitude(), robotLocation.getLongitude()), "Point " + route.getPointsNumber()));
             MapUtilities.drawPathOnMap(mMap, route, getResources());
-            robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(),getApplicationContext());
+            robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(), getApplicationContext());
         }
     }
 
@@ -343,7 +385,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
                         tvDistance.setText(sbprint + "cm");
                         try {
                             distanceToObstacle = Integer.parseInt(sbprint);
-                        }catch (Exception e){
+                        } catch (Exception e) {
                             e.printStackTrace();
                             Log.e(TAG, "handleMessage: CRASH CONVERSION");
                         }
@@ -378,7 +420,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
                         if (pointToAdd.getPosition().latitude != -31.90 && pointToAdd.getPosition().longitude != 115.86) {
                             route.addPoint(pointToAdd);
                             MapUtilities.drawPathOnMap(mMap, route, getResources());
-                            robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(),getApplicationContext());
+                            robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(), getApplicationContext());
                             dialog.dismiss();
                         } else {
                             Toast.makeText(getApplicationContext(), "Please define coordinates for the new Point", Toast.LENGTH_SHORT).show();
@@ -430,6 +472,27 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
         });
 
         dialog.show();
+        return false;
+    }
+
+    @Override
+    public void onCameraViewStarted(int width, int height) {
+        mRgba = new Mat(height, width, CvType.CV_8UC4);
+    }
+
+    @Override
+    public void onCameraViewStopped() {
+
+    }
+
+    @Override
+    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+        mRgba = inputFrame.rgba();
+        return mRgba;
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
         return false;
     }
 }

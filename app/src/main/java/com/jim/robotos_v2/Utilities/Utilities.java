@@ -3,11 +3,15 @@ package com.jim.robotos_v2.Utilities;
 import android.content.Context;
 import android.content.res.Resources;
 import android.hardware.GeomagneticField;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,6 +41,40 @@ import static java.lang.Math.abs;
  */
 public class Utilities {
 
+    static float[] mGravity = new float[3];
+    static float[] mGeomagnetic = new float[3];
+
+    public static float landscapeModeCompassCalibration(SensorEvent event) {
+
+        float azimuth = 0;
+
+        switch (event.sensor.getType()) {
+            case Sensor.TYPE_ACCELEROMETER:
+                mGravity = event.values.clone();
+                break;
+
+            case Sensor.TYPE_MAGNETIC_FIELD:
+                mGeomagnetic = event.values.clone();
+                break;
+        }
+
+        float R[] = new float[9];
+        float I[] = new float[9];
+        boolean success = SensorManager.getRotationMatrix(R, I, mGravity, mGeomagnetic);
+        if (success)
+
+        {
+            float orientation[] = new float[3];
+            SensorManager.getOrientation(R, orientation);
+            azimuth = orientation[0]; // orientation contains: azimut, pitch and roll
+            azimuth = (float) Math.toDegrees(azimuth) + 90;
+            azimuth = (azimuth + 360) % 360;
+           // Log.d("AZIMUTH", " " + azimuth);
+        }
+
+        return azimuth;
+    }
+
     public static int getMapType(Context context) {
         String mapType = Preferences.loadPrefsString("MAP_TYPE", "HYBRID", context);
         int mapTypeInteger;
@@ -60,7 +98,7 @@ public class Utilities {
     public static String giveDirection(float compassBearing, ImageView ivDirection, ImageView ivCompass, Route route, Location robotLocation, Context context, String previousCommand, GoogleMap mMap, Resources resources, TextView tvDistance, TextToSpeech tts, Bluetooth bluetooth) {
         String directionToReturn;
 
-        float bearingRange = Preferences.loadPrefsFloat("BEARING_RANGE", 10, context);
+        float bearingRange = Preferences.loadPrefsFloat("BEARING_RANGE", 20, context);
 
         if (route.getNextPoint() != null) {
             float desiredBearing = calculateAngleBetweenTwoPoint(robotLocation, route.getNextPoint().getPositionAsLocationobject(), true);
@@ -73,7 +111,7 @@ public class Utilities {
 
             tvDistance.setText((int) distance + "m");
 
-            float distanceErrorRange = Preferences.loadPrefsFloat("DISTANCE_ERROR_RANGE", 2, context);
+            float distanceErrorRange = Preferences.loadPrefsFloat("DISTANCE_ERROR_RANGE", 3, context);
 
             if (distance <= distanceErrorRange) {
                 tts.speak(route.getNextPoint().getName() + " REACHED", TextToSpeech.QUEUE_FLUSH, null);
@@ -102,8 +140,8 @@ public class Utilities {
                         }
                     }
                 }
-                if(!directionToReturn.equals(previousCommand))
-                setDirectionImage(directionToReturn, ivDirection, bluetooth);
+                if (!directionToReturn.equals(previousCommand))
+                    setDirectionImage(directionToReturn, ivDirection, bluetooth);
 
                 return directionToReturn;
             }
@@ -363,7 +401,7 @@ public class Utilities {
         return poly;
     }
 
-    public static Route convertPathToRoute(String result,Route route) {
+    public static Route convertPathToRoute(String result, Route route) {
 
         try {
             // Tranform the string into a json object
@@ -375,8 +413,8 @@ public class Utilities {
             String encodedString = overviewPolylines.getString("points");
             List<LatLng> list = decodePoly(encodedString);
 
-            for (LatLng latLng: list) {
-                route.addPoint(new Point(latLng,"Point "+route.getPointsNumber()));
+            for (LatLng latLng : list) {
+                route.addPoint(new Point(latLng, "Point " + route.getPointsNumber()));
             }
 
         } catch (JSONException e) {
@@ -387,13 +425,13 @@ public class Utilities {
         return route;
     }
 
-    public static String makeURL(LatLng start,LatLng finish) {
-        double sourceLat, sourceLong,  destLat, destLog;
+    public static String makeURL(LatLng start, LatLng finish) {
+        double sourceLat, sourceLong, destLat, destLog;
         sourceLat = start.latitude;
         sourceLong = start.longitude;
         destLat = finish.latitude;
         destLog = finish.longitude;
-        
+
         StringBuilder urlString = new StringBuilder();
         urlString.append("http://maps.googleapis.com/maps/api/directions/json");
         urlString.append("?origin=");// from
@@ -416,7 +454,7 @@ public class Utilities {
         return new Scalar(pointMatRgba.get(0, 0));
     }
 
-    public static Scalar convertScalarRgba2Hsv(Scalar rgbColor){
+    public static Scalar convertScalarRgba2Hsv(Scalar rgbColor) {
         Mat pointMatHsv = new Mat();
         Mat pointMatRgba = new Mat(1, 1, CvType.CV_8UC3, rgbColor);
         Imgproc.cvtColor(pointMatRgba, pointMatHsv, Imgproc.COLOR_RGB2HSV_FULL, 4);
@@ -424,7 +462,7 @@ public class Utilities {
         return new Scalar(pointMatHsv.get(0, 0));
     }
 
-    public static void giveDirectionColorDetection(org.opencv.core.Point center,int distanceToObject,double bottomLineHeight,double leftLineWidth,double rightLineWidth,ImageView ivDirection,Bluetooth bt,Context context){
+    public static void giveDirectionColorDetection(org.opencv.core.Point center, int distanceToObject, double bottomLineHeight, double leftLineWidth, double rightLineWidth, ImageView ivDirection, Bluetooth bt, Context context) {
         try {
             String command;
             if (center.y > bottomLineHeight) {
@@ -435,7 +473,7 @@ public class Utilities {
                 } else if (center.x > rightLineWidth) {
                     command = "RIGHT";
                 } else if ((center.x >= leftLineWidth) && (center.x <= rightLineWidth)) {
-                    if (distanceToObject < Preferences.loadPrefsInt("DISTANCE_TO_STOP_FROM_OBSTACLE_CM", 50,context)) {
+                    if (distanceToObject < Preferences.loadPrefsInt("DISTANCE_TO_STOP_FROM_OBSTACLE_CM", 50, context)) {
                         command = "STOP";
                     } else {
                         command = "FORWARD";
@@ -445,7 +483,7 @@ public class Utilities {
                 }
             }
 
-                Utilities.setDirectionImage(command, ivDirection, bt);
+            Utilities.setDirectionImage(command, ivDirection, bt);
 
         } catch (Exception e) {
             Utilities.setDirectionImage("STOP", ivDirection, bt);

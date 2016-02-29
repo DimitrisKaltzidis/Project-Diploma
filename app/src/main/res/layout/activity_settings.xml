@@ -9,4 +9,57 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.jim.robotos_v2.Settings">
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/bearing_range"
+        android:id="@+id/textView"
+        android:textStyle="bold"
+        android:textColor="@color/colorPrimary"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="numberDecimal"
+        android:ems="10"
+        android:id="@+id/etBearingRange"
+        android:layout_below="@+id/textView"
+        android:layout_alignParentStart="true"
+        android:textColor="@color/colorAccent"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/map_error_range"
+        android:id="@+id/textView2"
+        android:textStyle="bold"
+        android:layout_marginTop="20dp"
+        android:textColor="@color/colorPrimary"
+        android:layout_below="@+id/etBearingRange"
+        android:layout_alignParentStart="true" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="numberDecimal"
+        android:ems="10"
+        android:id="@+id/etMapsErrorRange"
+        android:layout_below="@+id/textView2"
+        android:layout_alignParentStart="true"
+        android:textColor="@color/colorAccent"
+        android:layout_alignEnd="@+id/etBearingRange" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabSave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:src="@drawable/save_new"
+        android:onClick="saveSettings"
+        android:layout_alignEnd="@+id/etMapsErrorRange" />
 </RelativeLayout>

@@ -28,4 +28,8 @@
     <string name="alpha">Alpha</string>
     <string name="latitude">Latitude</string>
     <string name="longitude">Longitude</string>
+    <string name="bearing_range">Bearing range (degrees):</string>
+    <string name="map_error_range">Map error range (meters):</string>
+    <string name="saved">Changes saved</string>
+    <string name="please_fill_correctly">Please fill the fields correctly</string>
 </resources>

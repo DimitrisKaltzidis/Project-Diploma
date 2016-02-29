@@ -11,6 +11,7 @@
          location permissions for the 'MyLocation' functionality. 
     -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <!-- For openCv -->
     <uses-permission android:name="android.permission.CAMERA" />
@@ -66,7 +67,7 @@
             android:name=".FieldNavigation"
             android:configChanges="orientation"
             android:label="@string/activity_field_navigation_label"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="landscape" />
         <!--
  ATTENTION: This was auto-generated to add Google Play services to your project for
      App Indexing.  See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -79,7 +80,7 @@
             android:name=".RoadNavigation"
             android:configChanges="orientation"
             android:label="@string/activity_road_navigation_label"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="landscape" />
         <activity
             android:name=".ManualOverride"
             android:configChanges="orientation"

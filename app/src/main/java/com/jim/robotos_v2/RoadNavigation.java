@@ -58,6 +58,10 @@ public class RoadNavigation extends AppCompatActivity  implements OnMapReadyCall
     private int endPointCounter=0;
     private LatLng startLocation,endLocation;
 
+
+    private Sensor gSensor;
+    private Sensor mSensor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,6 +86,9 @@ public class RoadNavigation extends AppCompatActivity  implements OnMapReadyCall
                 .addApi(AppIndex.API).build();
 
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+
+        gSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
         textToSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
@@ -130,8 +137,18 @@ public class RoadNavigation extends AppCompatActivity  implements OnMapReadyCall
         if (mGoogleApiClient.isConnected())
             startLocationUpdates();
 
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION),
-                SensorManager.SENSOR_DELAY_GAME);
+        //Legacy compass sensor code
+       /* mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION),
+                SensorManager.SENSOR_DELAY_GAME);*/
+
+        mSensorManager.registerListener(this, gSensor,
+                SensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(this, mSensor,
+                SensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(
+                this,
+                mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
+                SensorManager.SENSOR_DELAY_UI);
     }
 
 
@@ -221,7 +238,15 @@ public class RoadNavigation extends AppCompatActivity  implements OnMapReadyCall
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (robotLocation != null && (!route.isEmpty()) && running && textToSpeech != null) {
-            compassBearingDegrees = Utilities.correctCompassBearing(Math.round(event.values[0]), robotLocation);
+
+            float azimuth = 0;
+
+            azimuth = Utilities.landscapeModeCompassCalibration(event);
+
+            compassBearingDegrees = Utilities.correctCompassBearing(azimuth, robotLocation);
+
+            //Legacy compass sensor code
+           // compassBearingDegrees = Utilities.correctCompassBearing(Math.round(event.values[0]), robotLocation);
             currentDegree = Utilities.compassAnimationHandler(ivCompass, compassBearingDegrees, currentDegree);
             currentDegreeNorth = Utilities.compassNorthIconHandler(ivCompassNorth, compassBearingDegrees, currentDegreeNorth);
             command = Utilities.giveDirection(compassBearingDegrees, ivDirection, ivCompass, route, robotLocation, this, command, mMap, getResources(), tvDistance, textToSpeech,bt);

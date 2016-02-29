@@ -1,4 +1,4 @@
-package com.jim.robotos_v2.CumputerVision;
+package com.jim.robotos_v2.ComputerVision;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;

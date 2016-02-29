@@ -19,7 +19,7 @@ import android.widget.TextView;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.jim.robotos_v2.CumputerVision.ColorBlobDetector;
+import com.jim.robotos_v2.ComputerVision.ColorBlobDetector;
 import com.jim.robotos_v2.Utilities.Bluetooth;
 import com.jim.robotos_v2.Utilities.Preferences;
 import com.jim.robotos_v2.Utilities.Utilities;

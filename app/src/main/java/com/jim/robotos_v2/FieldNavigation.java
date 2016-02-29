@@ -1,6 +1,7 @@
 package com.jim.robotos_v2;
 
 import android.bluetooth.BluetoothAdapter;
+import android.content.res.Configuration;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -62,6 +63,10 @@ public class FieldNavigation extends AppCompatActivity implements OnMapReadyCall
     private Bluetooth bt;
     private static StringBuilder sb = new StringBuilder();
 
+
+    private Sensor gSensor;
+    private Sensor mSensor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,6 +91,9 @@ public class FieldNavigation extends AppCompatActivity implements OnMapReadyCall
                 .addApi(AppIndex.API).build();
 
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+
+        gSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
         textToSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
@@ -137,8 +145,20 @@ public class FieldNavigation extends AppCompatActivity implements OnMapReadyCall
         if (mGoogleApiClient.isConnected())
             startLocationUpdates();
 
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION),
-                SensorManager.SENSOR_DELAY_GAME);
+        //Legacy compass sensor
+        /*mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION),
+                SensorManager.SENSOR_DELAY_GAME);*/
+
+        mSensorManager.registerListener(this, gSensor,
+                SensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(this, mSensor,
+                SensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(
+                this,
+                mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
+                SensorManager.SENSOR_DELAY_UI);
+
+
     }
 
 
@@ -201,7 +221,7 @@ public class FieldNavigation extends AppCompatActivity implements OnMapReadyCall
     @Override
     public void onLocationChanged(Location location) {
         robotLocation = location;
-        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(),getApplicationContext());
+        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(), getApplicationContext());
     }
 
     @Override
@@ -212,13 +232,22 @@ public class FieldNavigation extends AppCompatActivity implements OnMapReadyCall
     public void onMapClick(LatLng latLng) {
         route.addPoint(new Point(latLng, "Point " + route.getPointsNumber()));
         MapUtilities.drawPathOnMap(mMap, route, getResources());
-        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(),getApplicationContext());
+        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(), getApplicationContext());
     }
+
+
+    /*float[] mGravity = new float[3];
+    float[] mGeomagnetic = new float[3];*/
 
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (robotLocation != null && (!route.isEmpty()) && running && textToSpeech != null) {
-            compassBearingDegrees = Utilities.correctCompassBearing(Math.round(event.values[0]), robotLocation);
+
+            float azimuth = 0;
+
+            azimuth = Utilities.landscapeModeCompassCalibration(event);
+
+            compassBearingDegrees = Utilities.correctCompassBearing(azimuth, robotLocation);
             currentDegree = Utilities.compassAnimationHandler(ivCompass, compassBearingDegrees, currentDegree);
             currentDegreeNorth = Utilities.compassNorthIconHandler(ivCompassNorth, compassBearingDegrees, currentDegreeNorth);
             command = Utilities.giveDirection(compassBearingDegrees, ivDirection, ivCompass, route, robotLocation, this, command, mMap, getResources(), tvDistance, textToSpeech, bt);
@@ -244,7 +273,7 @@ public class FieldNavigation extends AppCompatActivity implements OnMapReadyCall
     }
 
     public void showMyLocationClicked(View view) {
-        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(),getApplicationContext());
+        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(), getApplicationContext());
 
     }
 
@@ -263,7 +292,7 @@ public class FieldNavigation extends AppCompatActivity implements OnMapReadyCall
         if (!running) {
             route.addPoint(new Point(new LatLng(robotLocation.getLatitude(), robotLocation.getLongitude()), "Point " + route.getPointsNumber()));
             MapUtilities.drawPathOnMap(mMap, route, getResources());
-            robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(),getApplicationContext());
+            robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(), getApplicationContext());
         }
     }
 
@@ -343,7 +372,7 @@ public class FieldNavigation extends AppCompatActivity implements OnMapReadyCall
                         if (pointToAdd.getPosition().latitude != -31.90 && pointToAdd.getPosition().longitude != 115.86) {
                             route.addPoint(pointToAdd);
                             MapUtilities.drawPathOnMap(mMap, route, getResources());
-                            robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(),getApplicationContext());
+                            robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(), getApplicationContext());
                             dialog.dismiss();
                         } else {
                             Toast.makeText(getApplicationContext(), "Please define coordinates for the new Point", Toast.LENGTH_SHORT).show();

@@ -2,6 +2,7 @@ package com.jim.robotos_v2;
 
 import android.bluetooth.BluetoothAdapter;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -9,7 +10,9 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.os.Build;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
+import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -61,14 +64,14 @@ import org.opencv.imgproc.Imgproc;
 import java.util.List;
 import java.util.Locale;
 
-public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapClickListener, SensorEventListener, View.OnLongClickListener, View.OnTouchListener, CameraBridgeViewBase.CvCameraViewListener2 {
+public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapClickListener, SensorEventListener, View.OnLongClickListener, /*View.OnTouchListener,*/ CameraBridgeViewBase.CvCameraViewListener2 {
     private GoogleMap mMap;
     private LocationRequest mLocationRequest;
     private GoogleApiClient mGoogleApiClient;
     private SensorManager mSensorManager;
     private float compassBearingDegrees = 0f;
     private float currentDegree = 0f, currentDegreeNorth = 0f;//for the image rotation
-    private ImageView ivCompass, ivDirection, ivCompassNorth, ivPlayStop, ivBluetooth, ivAddToRoute;
+    private ImageView ivCompass, ivDirection, ivCompassNorth, ivPlayStop, ivBluetooth, ivAddToRoute, ivDetectionColor;
     private TextView tvDistance;
     private Location robotLocation;
     private Route route;
@@ -90,7 +93,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
     private Mat mSpectrum;
     private Size SPECTRUM_SIZE;
     private org.opencv.core.Point center;
-    private boolean mIsColorSelected;
+    private boolean mIsColorSelected = false;
     private double cameraViewHeight;
     private double cameraViewWidth;
 
@@ -105,7 +108,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
                 case LoaderCallbackInterface.SUCCESS: {
                     Log.i(TAG, "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
-                    mOpenCvCameraView.setOnTouchListener(ObstacleAvoidance.this);
+                   // mOpenCvCameraView.setOnTouchListener(ObstacleAvoidance.this);
                 }
                 break;
                 default: {
@@ -118,13 +121,79 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
 
 
     @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        int cols = mRgba.cols();
+        int rows = mRgba.rows();
+
+        int xOffset = (mOpenCvCameraView.getWidth() - cols) / 2;
+        int yOffset = (mOpenCvCameraView.getHeight() - rows) / 2;
+
+        int x = (int) event.getX() - xOffset;
+        int y = (int) event.getY() - yOffset;
+
+        Log.i("TouchEvent", "Touch image coordinates: (" + event.getX() + ", " + event.getY() + ")" + " downTime: " + event.getDownTime() + " eventTime: " + event.getEventTime() + " action: " + event.getAction() + " xOffset: " + xOffset + " yOffset: " + yOffset + " pressure: " + event.getPressure() + " size: " + event.getSize() + " metaState: " + event.getMetaState() + " xPrecision: " + event.getXPrecision() + " yPrecision: " + event.getYPrecision() + " deviceID: " + event.getDeviceId() + " edgeFlags: " + event.getEdgeFlags());
+
+        if ((x < 0) || (y < 0) || (x > cols) || (y > rows)) return false;
+
+        Rect touchedRect = new Rect();
+
+        touchedRect.x = (x > 4) ? x - 4 : 0;
+        touchedRect.y = (y > 4) ? y - 4 : 0;
+
+        touchedRect.width = (x + 4 < cols) ? x + 4 - touchedRect.x : cols - touchedRect.x;
+        touchedRect.height = (y + 4 < rows) ? y + 4 - touchedRect.y : rows - touchedRect.y;
+
+        Mat touchedRegionRgba = mRgba.submat(touchedRect);
+
+        Mat touchedRegionHsv = new Mat();
+        Imgproc.cvtColor(touchedRegionRgba, touchedRegionHsv, Imgproc.COLOR_RGB2HSV_FULL);
+
+        // Calculate average color of touched region
+        mBlobColorHsv = Core.sumElems(touchedRegionHsv);
+        int pointCount = touchedRect.width * touchedRect.height;
+        for (int i = 0; i < mBlobColorHsv.val.length; i++)
+            mBlobColorHsv.val[i] /= pointCount;
+
+        mBlobColorRgba = Utilities.convertScalarHsv2Rgba(mBlobColorHsv);
+
+        Toast.makeText(getApplicationContext(), "Touched", Toast.LENGTH_LONG).show();
+        Log.i(TAG, "Touched rgba color: (" + mBlobColorRgba.val[0] + ", " + mBlobColorRgba.val[1] +
+                ", " + mBlobColorRgba.val[2] + ", " + mBlobColorRgba.val[3] + ")");
+
+        ivDetectionColor.setBackgroundColor(Color.rgb((int) mBlobColorRgba.val[0], (int) mBlobColorRgba.val[1], (int) mBlobColorRgba.val[2]));
+
+        mDetector.setHsvColor(mBlobColorHsv);
+
+        Imgproc.resize(mDetector.getSpectrum(), mSpectrum, SPECTRUM_SIZE);
+
+        mIsColorSelected = true;
+
+        touchedRegionRgba.release();
+        touchedRegionHsv.release();
+
+        return false;
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_obstacle_avoidance);
 
+
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.jcvColorDetection);
         mOpenCvCameraView.setCvCameraViewListener(this);
-
+        mOpenCvCameraView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                Toast toast = Toast.makeText(
+                        getApplicationContext(),
+                        "View touched",
+                        Toast.LENGTH_LONG
+                );
+                toast.show();
+                return true;
+            }
+        });
         initializeGraphicComponents();
 
         route = new Route();
@@ -199,6 +268,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
         ivBluetooth = (ImageView) findViewById(R.id.ivBluetooth);
         tvDistance = (TextView) findViewById(R.id.tvDistance);
         ivAddToRoute = (ImageView) findViewById(R.id.ivAddPointToPath);
+        ivDetectionColor = (ImageView) findViewById(R.id.ivDetectionColor);
     }
 
 
@@ -340,15 +410,19 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
             currentDegreeNorth = Utilities.compassNorthIconHandler(ivCompassNorth, compassBearingDegrees, currentDegreeNorth);
             if (distanceToObstacle > 50) {
                 command = Utilities.giveDirection(compassBearingDegrees, ivDirection, ivCompass, route, robotLocation, this, command, mMap, getResources(), tvDistance, textToSpeech, bt);
+                counter = 0;
             } else {
                 if (counter == 0) {
+                    long downTime = SystemClock.uptimeMillis();
+                    long eventTime = SystemClock.uptimeMillis() + 100;
+
                     Utilities.setDirectionImage("STOP", ivDirection, bt);
-                    MotionEvent motionEvent = MotionEvent.obtain(138049290, 138049290, 0,
+                    MotionEvent motionEvent = MotionEvent.obtain(downTime, eventTime, 0,
                             223.0f, 235.0f, 0.5625f, 0.26666668f,
                             0, 1.0f, 1.0f,
                             4, 0);
-                    mOpenCvCameraView.onTouchEvent(motionEvent);
-                    mIsColorSelected = true;
+                  //  mOpenCvCameraView.onTouchEvent(motionEvent);
+                    mOpenCvCameraView.dispatchTouchEvent(motionEvent);
                 } else {
                     counter++;
                 }
@@ -603,7 +677,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
 
         return mRgba;
     }
-
+/*
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         int cols = mRgba.cols();
@@ -614,11 +688,11 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
 
         int x = (int) event.getX() - xOffset;
         int y = (int) event.getY() - yOffset;
-/*MotionEvent event = MotionEvent.obtain(downTime, eventTime, action,
+*//*MotionEvent event = MotionEvent.obtain(downTime, eventTime, action,
                                        x, y, pressure, size,
                                        metaState, xPrecision, yPrecision,
                                        deviceId, edgeFlags);
-onTouchEvent(event);*/
+onTouchEvent(event);*//*
         Log.i("TouchEvent", "Touch image coordinates: (" + event.getX() + ", " + event.getY() + ")" + " downTime: " + event.getDownTime() + " eventTime: " + event.getEventTime() + " action: " + event.getAction() + " xOffset: " + xOffset + " yOffset: " + yOffset + " pressure: " + event.getPressure() + " size: " + event.getSize() + " metaState: " + event.getMetaState() + " xPrecision: " + event.getXPrecision() + " yPrecision: " + event.getYPrecision() + " deviceID: " + event.getDeviceId() + " edgeFlags: " + event.getEdgeFlags());
 
         if ((x < 0) || (y < 0) || (x > cols) || (y > rows)) return false;
@@ -644,10 +718,11 @@ onTouchEvent(event);*/
 
         mBlobColorRgba = Utilities.convertScalarHsv2Rgba(mBlobColorHsv);
 
+        Toast.makeText(getApplicationContext(), "Touched", Toast.LENGTH_LONG).show();
         Log.i(TAG, "Touched rgba color: (" + mBlobColorRgba.val[0] + ", " + mBlobColorRgba.val[1] +
                 ", " + mBlobColorRgba.val[2] + ", " + mBlobColorRgba.val[3] + ")");
 
-        //ivDetectionColor.setBackgroundColor(Color.rgb((int) mBlobColorRgba.val[0], (int) mBlobColorRgba.val[1], (int) mBlobColorRgba.val[2]));
+        ivDetectionColor.setBackgroundColor(Color.rgb((int) mBlobColorRgba.val[0], (int) mBlobColorRgba.val[1], (int) mBlobColorRgba.val[2]));
 
         mDetector.setHsvColor(mBlobColorHsv);
 
@@ -659,5 +734,5 @@ onTouchEvent(event);*/
         touchedRegionHsv.release();
 
         return false; // don't need subsequent touch events
-    }
+    }*/
 }

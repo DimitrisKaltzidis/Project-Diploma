@@ -14,14 +14,14 @@
         android:layout_height="match_parent"
         android:layout_above="@+id/linearLayout"
         android:layout_alignTop="@+id/relativeLayout"
-        android:layout_centerHorizontal="true" />
+        android:layout_toStartOf="@+id/jcvColorDetection" />
 
     <org.opencv.android.JavaCameraView
         android:layout_width="150dp"
         android:visibility="visible"
         android:layout_height="150dp"
         android:id="@+id/jcvColorDetection"
-        android:layout_below="@+id/relativeLayout"
+        android:layout_centerVertical="true"
         android:layout_alignParentEnd="true" />
 
     <LinearLayout
@@ -73,6 +73,8 @@
             android:scaleType="fitCenter"
             android:src="@drawable/up" />
 
+
+
         <TextView
             android:id="@+id/tvDistance"
             android:layout_width="wrap_content"
@@ -96,9 +98,9 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_alignParentBottom="true"
-        android:background="@color/black_transparent"
+        android:background="@color/black"
         android:orientation="horizontal"
-        android:weightSum="4">
+        android:weightSum="5">
 
 
         <ImageView
@@ -144,6 +146,17 @@
             android:scaleType="fitCenter"
             android:onClick="playButtonClicked"
             android:src="@drawable/play" />
+
+        <ImageView
+            android:id="@+id/ivDetectionColor"
+            android:layout_width="41dp"
+            android:layout_height="41dp"
+            android:layout_gravity="center"
+            android:layout_marginEnd="41dp"
+            android:background="@color/colorPrimary"
+            android:contentDescription="@string/control_button"
+            android:scaleType="fitCenter"
+            android:src="@drawable/color_overlay_black" />
 
     </LinearLayout>
 </RelativeLayout>

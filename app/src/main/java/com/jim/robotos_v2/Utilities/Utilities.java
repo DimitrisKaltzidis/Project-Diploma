@@ -109,7 +109,7 @@ public class Utilities {
 
             float distance = robotLocation.distanceTo(route.getNextPoint().getPositionAsLocationobject());
 
-            tvDistance.setText((int) distance + "m");
+            //tvDistance.setText((int) distance + "m");
 
             float distanceErrorRange = Preferences.loadPrefsFloat("DISTANCE_ERROR_RANGE", 3, context);
 
@@ -465,24 +465,28 @@ public class Utilities {
     public static void giveDirectionColorDetection(org.opencv.core.Point center, int distanceToObject, double bottomLineHeight, double leftLineWidth, double rightLineWidth, ImageView ivDirection, Bluetooth bt, Context context) {
         try {
             String command;
-            if (center.y > bottomLineHeight) {
-                command = "STOP";
-            } else {
-                if (center.x < leftLineWidth) {
-                    command = "LEFT";
-                } else if (center.x > rightLineWidth) {
-                    command = "RIGHT";
-                } else if ((center.x >= leftLineWidth) && (center.x <= rightLineWidth)) {
-                    if (distanceToObject < Preferences.loadPrefsInt("DISTANCE_TO_STOP_FROM_OBSTACLE_CM", 50, context)) {
-                        command = "STOP";
-                    } else {
-                        command = "FORWARD";
-                    }
-                } else {
-                    command = "RIGHT";
-                }
-            }
 
+            if (distanceToObject < Preferences.loadPrefsInt("DISTANCE_TO_STOP_FROM_OBSTACLE_CM", 50, context)) {
+                if (center.y > bottomLineHeight) {
+                    command = "STOP";
+                } else {
+                    if (center.x < leftLineWidth) {
+                        command = "LEFT";
+                    } else if (center.x > rightLineWidth) {
+                        command = "RIGHT";
+                    } else if ((center.x >= leftLineWidth) && (center.x <= rightLineWidth)) {
+                        if (distanceToObject < Preferences.loadPrefsInt("DISTANCE_TO_STOP_FROM_OBSTACLE_CM", 50, context)) {
+                            command = "STOP";
+                        } else {
+                            command = "FORWARD";
+                        }
+                    } else {
+                        command = "RIGHT";
+                    }
+                }
+            }else{
+                command = "STOP";
+            }
             Utilities.setDirectionImage(command, ivDirection, bt);
 
         } catch (Exception e) {

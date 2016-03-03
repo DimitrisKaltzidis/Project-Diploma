@@ -101,14 +101,14 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
             public void run() {
                 while (!Thread.interrupted())
                     try {
-                        Log.d(TAG, "run: "+Thread.interrupted());
+                        Log.d(TAG, "run: " + Thread.interrupted());
                         Thread.sleep(Preferences.loadPrefsInt("COMMUNICATION_LOOP_REPEAT_TIME", 100, getApplicationContext()));
                         runOnUiThread(new Runnable() // start actions in UI thread
                         {
 
                             @Override
                             public void run() {
-                                Log.d(TAG, "run: 2"+Thread.interrupted());
+                                Log.d(TAG, "run: 2" + Thread.interrupted());
                                 if (mIsColorSelected)
                                     Utilities.giveDirectionColorDetection(center, distanceToObject, bottomLineHeight, leftLineWidth, rightLineWidth, ivDirection, bt, getApplicationContext());
                             }
@@ -167,10 +167,10 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
                     temp = Imgproc.boundingRect(contours.get(0));
                     Core.rectangle(mRgba, temp.tl(), temp.br(), new Scalar(238, 233, 60), 3);
 
-                    for (int i = 1; i < contours.size(); i++) {
+                   /* for (int i = 1; i < contours.size(); i++) {
                         temp = Imgproc.boundingRect(contours.get(i));
                         Core.rectangle(mRgba, temp.tl(), temp.br(), new Scalar(238, 233, 60), 3);
-                    }
+                    }*/
 
                     rectTopLeft = temp.tl();
 
@@ -189,7 +189,6 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
             Core.line(mRgba, new org.opencv.core.Point(rightLineWidth, cameraViewHeight), new org.opencv.core.Point(rightLineWidth, 0), new Scalar(255, 0, 0, 255), 5);
 
             Core.line(mRgba, new org.opencv.core.Point(cameraViewWidth, bottomLineHeight), new org.opencv.core.Point(0, bottomLineHeight), new Scalar(154, 189, 47), 6);
-
 
 
         }
@@ -312,7 +311,7 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
         }
     }
 
-     Handler mHandler = new Handler(new Handler.Callback() {
+    Handler mHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
             switch (msg.what) {

@@ -493,5 +493,28 @@ public class Utilities {
             Utilities.setDirectionImage("STOP", ivDirection, bt);
         }
     }
+    static int counter =0;
+
+    public static int normalizeReadingsFromDistanceSensor(int currentSensorValue,int previousSensorValue){
+
+
+        if(counter == 0){
+            return currentSensorValue;
+        }
+
+        if(currentSensorValue<20){
+            return previousSensorValue;
+        }
+
+
+
+        if(abs(previousSensorValue - currentSensorValue)>40){
+            return previousSensorValue;
+        }else {
+            return currentSensorValue;
+        }
+
+
+    }
 
 }

@@ -1,7 +1,6 @@
 package com.jim.robotos_v2;
 
 import android.bluetooth.BluetoothAdapter;
-import android.content.res.Configuration;
 import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -9,14 +8,13 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Message;
 import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -65,6 +63,9 @@ import java.util.List;
 import java.util.Locale;
 
 public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapClickListener, SensorEventListener, View.OnLongClickListener, /*View.OnTouchListener,*/ CameraBridgeViewBase.CvCameraViewListener2 {
+    static String TAG = "HANDLER";
+    private static StringBuilder sb = new StringBuilder();
+    int counter = 0;
     private GoogleMap mMap;
     private LocationRequest mLocationRequest;
     private GoogleApiClient mGoogleApiClient;
@@ -81,10 +82,51 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
     private TextToSpeech textToSpeech;
     private Bluetooth bt;
     private Thread directionThread;
-    private static StringBuilder sb = new StringBuilder();
     private int distanceToObstacle = 2000;
+    Handler mHandler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            switch (msg.what) {
+                case Bluetooth.MESSAGE_STATE_CHANGE:
+                    Log.d(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
+                    break;
+                case Bluetooth.MESSAGE_WRITE:
+                    Log.d(TAG, "MESSAGE_WRITE ");
+                    break;
+                case Bluetooth.MESSAGE_READ:
+                    byte[] readBuf = (byte[]) msg.obj;
+                    String strIncom = new String(readBuf, 0, msg.arg1);
+                    sb.append(strIncom);
+                    int endOfLineIndex = sb.indexOf("\r\n");                            // determine the end-of-line
+                    if (endOfLineIndex > 0) {                                            // if end-of-line,
+                        String sbprint = sb.substring(0, endOfLineIndex);               // extract string
+                        sb.delete(0, sb.length());   // and clear
 
 
+                        Log.d("READ_FROM_ARDUINO", sbprint + "");
+                        try {
+
+                            distanceToObstacle = Utilities.normalizeReadingsFromDistanceSensor(Integer.parseInt(sbprint), distanceToObstacle);
+
+                            Log.d("READ_FROM_ARDUINO_NORM", distanceToObstacle + "");
+                            tvDistance.setText(distanceToObstacle + "cm");
+                            //distanceToObstacle = Integer.parseInt(sbprint);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Log.e(TAG, "handleMessage: CRASH CONVERSION");
+                        }
+                    }
+                    break;
+                case Bluetooth.MESSAGE_DEVICE_NAME:
+                    Log.d(TAG, "MESSAGE_DEVICE_NAME " + msg);
+                    break;
+                case Bluetooth.MESSAGE_TOAST:
+                    Log.d(TAG, "MESSAGE_TOAST " + msg);
+                    break;
+            }
+            return false;
+        }
+    });
     private CameraBridgeViewBase mOpenCvCameraView;
     private Mat mRgba;
     private Scalar mBlobColorRgba;
@@ -92,15 +134,15 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
     private ColorBlobDetector mDetector;
     private Mat mSpectrum;
     private Size SPECTRUM_SIZE;
-    private org.opencv.core.Point center;
+    private org.opencv.core.Point center, topLeft, topRight, bottomLeft, bottomRight, topMiddle, bottomMiddle;
     private boolean mIsColorSelected = false;
     private double cameraViewHeight;
     private double cameraViewWidth;
-
+    private int contourColor, pointColor, smallAreaColor, bigAreaColor;
+    private int areaLeft, areaRight;
     private Sensor gSensor;
     private Sensor mSensor;
-
-
+    private String mode = "PATH";
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
@@ -118,7 +160,9 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
             }
         }
     };
-
+    private Rect temp;
+    private org.opencv.core.Point rectTopLeft;
+    private double leftLineWidth = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -180,7 +224,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
                 touchedRegionRgba.release();
                 touchedRegionHsv.release();
 
-                Log.d("SCAN", "PLATOS - IPSOS: " + v.getWidth() + " " + v.getHeight());
+                // Log.d("SCAN", "PLATOS - IPSOS: " + v.getWidth() + " " + v.getHeight());
                 return true;
             }
         });
@@ -234,27 +278,33 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
                             @Override
                             public void run() {
                                 if (robotLocation != null && (!route.isEmpty()) && running && textToSpeech != null) {
-                                    if (distanceToObstacle > 50) {
+
+                                    if (distanceToObstacle < Preferences.loadPrefsInt("OBSTACLE_DETECTION_RANGE", 100, getApplicationContext())) {
+                                        mode = "OBSTACLE";
+                                    }
+
+                                    if (mode.equals("PATH")) {
                                         command = Utilities.giveDirection(compassBearingDegrees, ivDirection, ivCompass, route, robotLocation, getApplicationContext(), command, mMap, getResources(), tvDistance, textToSpeech, bt);
-                                        counter = 0;
-                                    } else {
-                                        if (counter == 0) {
+                                        mIsColorSelected = false;
+
+                                    } else if (mode.equals("OBSTACLE")) {
+
+                                        if (!mIsColorSelected) {
                                             long downTime = SystemClock.uptimeMillis();
                                             long eventTime = SystemClock.uptimeMillis() + 100;
 
                                             Utilities.setDirectionImage("STOP", ivDirection, bt);
                                             MotionEvent motionEvent = MotionEvent.obtain(downTime, eventTime, 0,
-                                                    223.0f, 235.0f, 0.5625f, 0.26666668f,
+                                                    225.0f, 225.0f, 0.5625f, 0.26666668f,
                                                     0, 1.0f, 1.0f,
                                                     4, 0);
-                                            //  mOpenCvCameraView.onTouchEvent(motionEvent);
+
                                             mOpenCvCameraView.dispatchTouchEvent(motionEvent);
-                                        } else {
-                                            counter++;
                                         }
                                     }
-                                    //  Log.e("DIRECTION", command);
 
+
+                                    // END OF PATH REACHED - FINISH PROGRAM
                                     if (command.equals("FINISH")) {
                                         mMap.clear();
                                         tvDistance.setText("---m");
@@ -291,7 +341,6 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
         ivDetectionColor = (ImageView) findViewById(R.id.ivDetectionColor);
     }
 
-
     protected void startLocationUpdates() {
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 mGoogleApiClient, mLocationRequest, this);
@@ -301,7 +350,6 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
         LocationServices.FusedLocationApi.removeLocationUpdates(
                 mGoogleApiClient, this);
     }
-
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -315,10 +363,6 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
         super.onResume();
         if (mGoogleApiClient.isConnected())
             startLocationUpdates();
-
-        //Legacy compass sensor code
-       /* mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION),
-                SensorManager.SENSOR_DELAY_GAME);*/
 
         mSensorManager.registerListener(this, gSensor,
                 SensorManager.SENSOR_DELAY_UI);
@@ -336,7 +380,6 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
     }
-
 
     @Override
     protected void onDestroy() {
@@ -368,7 +411,6 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
         if (!mGoogleApiClient.isConnected())
             mGoogleApiClient.connect();
     }
-
 
     @Override
     protected void onStop() {
@@ -410,8 +452,6 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
         MapUtilities.drawPathOnMap(mMap, route, getResources());
         robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(), getApplicationContext());
     }
-
-    int counter = 0;
 
     @Override
     public void onSensorChanged(SensorEvent event) {
@@ -483,53 +523,6 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
             ivBluetooth.setImageResource(R.drawable.disconnected);
         }
     }
-
-    static String TAG = "HANDLER";
-
-    Handler mHandler = new Handler(new Handler.Callback() {
-        @Override
-        public boolean handleMessage(Message msg) {
-            switch (msg.what) {
-                case Bluetooth.MESSAGE_STATE_CHANGE:
-                    Log.d(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
-                    break;
-                case Bluetooth.MESSAGE_WRITE:
-                    Log.d(TAG, "MESSAGE_WRITE ");
-                    break;
-                case Bluetooth.MESSAGE_READ:
-                    byte[] readBuf = (byte[]) msg.obj;
-                    String strIncom = new String(readBuf, 0, msg.arg1);
-                    sb.append(strIncom);
-                    int endOfLineIndex = sb.indexOf("\r\n");                            // determine the end-of-line
-                    if (endOfLineIndex > 0) {                                            // if end-of-line,
-                        String sbprint = sb.substring(0, endOfLineIndex);               // extract string
-                        sb.delete(0, sb.length());   // and clear
-
-
-                        Log.d("READ_FROM_ARDUINO", sbprint + "");
-                        try {
-
-                            distanceToObstacle = Utilities.normalizeReadingsFromDistanceSensor(Integer.parseInt(sbprint), distanceToObstacle);
-
-                            Log.d("READ_FROM_ARDUINO_NORM", distanceToObstacle + "");
-                            tvDistance.setText(distanceToObstacle + "cm");
-                            //distanceToObstacle = Integer.parseInt(sbprint);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            Log.e(TAG, "handleMessage: CRASH CONVERSION");
-                        }
-                    }
-                    break;
-                case Bluetooth.MESSAGE_DEVICE_NAME:
-                    Log.d(TAG, "MESSAGE_DEVICE_NAME " + msg);
-                    break;
-                case Bluetooth.MESSAGE_TOAST:
-                    Log.d(TAG, "MESSAGE_TOAST " + msg);
-                    break;
-            }
-            return false;
-        }
-    });
 
     @Override
     public boolean onLongClick(View v) {
@@ -615,8 +608,16 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
         cameraViewHeight = (double) mOpenCvCameraView.getHeight();
         cameraViewWidth = (double) mOpenCvCameraView.getWidth();
         center = null;
-        bottomLineHeight = (double) Preferences.loadPrefsInt("BOTTOM_LINE_VALUE", 500, getApplicationContext());
-
+        topLeft = null;
+        topRight = null;
+        bottomLeft = null;
+        bottomRight = null;
+        bottomMiddle = null;
+        topMiddle = null;
+        contourColor = getResources().getColor(R.color.red_soft);
+        pointColor = getResources().getColor(R.color.lime);
+        bigAreaColor = getResources().getColor(R.color.red_area);
+        smallAreaColor = getResources().getColor(R.color.green_area);
     }
 
     @Override
@@ -624,15 +625,10 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
 
     }
 
-    private Rect temp;
-    private org.opencv.core.Point rectTopLeft;
-    private double leftLineWidth = 0, rightLineWidth = 0;
-    private double bottomLineHeight;
-
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         mRgba = inputFrame.rgba();
-
+        //Log.d("SCAN", "PLATOS - IPSOS: " + mRgba.width() + " " + mRgba.height());
         if (mIsColorSelected) {
             mDetector.process(mRgba);
             List<MatOfPoint> contours = mDetector.getContours();
@@ -640,93 +636,67 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
             try {
                 if (!contours.isEmpty()) {
                     temp = Imgproc.boundingRect(contours.get(0));
-                    Core.rectangle(mRgba, temp.tl(), temp.br(), new Scalar(238, 233, 60), 3);
+                    Core.rectangle(mRgba, temp.tl(), temp.br(), new Scalar(Color.red(contourColor), Color.green(contourColor), Color.blue(contourColor)), 3);
 
-                    for (int i = 1; i < contours.size(); i++) {
-                        temp = Imgproc.boundingRect(contours.get(i));
-                        Core.rectangle(mRgba, temp.tl(), temp.br(), new Scalar(238, 233, 60), 3);
-                    }
-
+                    //Top Left of detected color area
                     rectTopLeft = temp.tl();
 
+                    // Calculate detect object edges
                     center = new org.opencv.core.Point(rectTopLeft.x + (temp.width / 2), rectTopLeft.y + (temp.height / 2));
+                    topLeft = new org.opencv.core.Point(rectTopLeft.x, rectTopLeft.y);
+                    topRight = new org.opencv.core.Point(rectTopLeft.x + temp.width, rectTopLeft.y);
+                    bottomLeft = new org.opencv.core.Point(rectTopLeft.x, rectTopLeft.y + temp.height);
+                    bottomRight = new org.opencv.core.Point(rectTopLeft.x + temp.width, rectTopLeft.y + temp.height);
 
-                    Core.circle(mRgba, center, 4, new Scalar(128, 255, 0));
+                    if (topLeft.x < mRgba.width() / 2 && topRight.x > mRgba.width() / 2) {
+                        topMiddle = new org.opencv.core.Point(mRgba.width() / 2, rectTopLeft.y);
+                        bottomMiddle = new org.opencv.core.Point(mRgba.width() / 2, rectTopLeft.y + temp.height);
+                        Core.circle(mRgba, topMiddle, 7, new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), -1);
+                        Core.circle(mRgba, bottomMiddle, 7, new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), -1);
+
+                        areaLeft = (int) Utilities.calculateDistanceBetweenTwoPoints(topLeft, topMiddle) * temp.height;
+                        areaRight = (int) Utilities.calculateDistanceBetweenTwoPoints(topMiddle, topRight) * temp.height;
+
+                        if (areaRight > areaLeft) {
+                            Core.rectangle(mRgba, topMiddle, bottomRight, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor)), -3);
+                            Core.rectangle(mRgba, topLeft, bottomMiddle, new Scalar(Color.red(smallAreaColor), Color.green(smallAreaColor), Color.blue(smallAreaColor)), -3);
+
+                        } else if (areaRight < areaLeft) {
+                            Core.rectangle(mRgba, topMiddle, bottomRight, new Scalar(Color.red(smallAreaColor), Color.green(smallAreaColor), Color.blue(smallAreaColor)), -3);
+                            Core.rectangle(mRgba, topLeft, bottomMiddle, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor)), -3);
+
+                        } else {
+                            Core.rectangle(mRgba, topMiddle, bottomRight, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor)), -3);
+                            Core.rectangle(mRgba, topLeft, bottomMiddle, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor)), -3);
+                        }
+
+                    } else {
+                        topMiddle = null;
+                        bottomMiddle = null;
+                        areaRight = 0;
+                        areaLeft = 0;
+                    }
+
+
+                    // Draw points
+                    Core.circle(mRgba, center, 7, new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), -1);
+                    Core.circle(mRgba, topLeft, 7, new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), -1);
+                    Core.circle(mRgba, topRight, 7, new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), -1);
+                    Core.circle(mRgba, bottomLeft, 7, new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), -1);
+                    Core.circle(mRgba, bottomRight, 7, new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), -1);
+
+
+                    // Core.line(mRgba, new org.opencv.core.Point(mRgba.width() / 2, 0), new org.opencv.core.Point(mRgba.width() / 2, mRgba.height()), new Scalar(255, 0, 0, 255), 5);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 center = new org.opencv.core.Point(-1, -1);
             }
 
-
-            Core.line(mRgba, new org.opencv.core.Point(leftLineWidth, cameraViewHeight), new org.opencv.core.Point(leftLineWidth, 0), new Scalar(255, 0, 0, 255), 5);
-
-            Core.line(mRgba, new org.opencv.core.Point(rightLineWidth, cameraViewHeight), new org.opencv.core.Point(rightLineWidth, 0), new Scalar(255, 0, 0, 255), 5);
-
-            Core.line(mRgba, new org.opencv.core.Point(cameraViewWidth, bottomLineHeight), new org.opencv.core.Point(0, bottomLineHeight), new Scalar(154, 189, 47), 6);
-
-
         }
 
 
         return mRgba;
     }
-/*
-    @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        int cols = mRgba.cols();
-        int rows = mRgba.rows();
 
-        int xOffset = (mOpenCvCameraView.getWidth() - cols) / 2;
-        int yOffset = (mOpenCvCameraView.getHeight() - rows) / 2;
-
-        int x = (int) event.getX() - xOffset;
-        int y = (int) event.getY() - yOffset;
-*//*MotionEvent event = MotionEvent.obtain(downTime, eventTime, action,
-                                       x, y, pressure, size,
-                                       metaState, xPrecision, yPrecision,
-                                       deviceId, edgeFlags);
-onTouchEvent(event);*//*
-        Log.i("TouchEvent", "Touch image coordinates: (" + event.getX() + ", " + event.getY() + ")" + " downTime: " + event.getDownTime() + " eventTime: " + event.getEventTime() + " action: " + event.getAction() + " xOffset: " + xOffset + " yOffset: " + yOffset + " pressure: " + event.getPressure() + " size: " + event.getSize() + " metaState: " + event.getMetaState() + " xPrecision: " + event.getXPrecision() + " yPrecision: " + event.getYPrecision() + " deviceID: " + event.getDeviceId() + " edgeFlags: " + event.getEdgeFlags());
-
-        if ((x < 0) || (y < 0) || (x > cols) || (y > rows)) return false;
-
-        Rect touchedRect = new Rect();
-
-        touchedRect.x = (x > 4) ? x - 4 : 0;
-        touchedRect.y = (y > 4) ? y - 4 : 0;
-
-        touchedRect.width = (x + 4 < cols) ? x + 4 - touchedRect.x : cols - touchedRect.x;
-        touchedRect.height = (y + 4 < rows) ? y + 4 - touchedRect.y : rows - touchedRect.y;
-
-        Mat touchedRegionRgba = mRgba.submat(touchedRect);
-
-        Mat touchedRegionHsv = new Mat();
-        Imgproc.cvtColor(touchedRegionRgba, touchedRegionHsv, Imgproc.COLOR_RGB2HSV_FULL);
-
-        // Calculate average color of touched region
-        mBlobColorHsv = Core.sumElems(touchedRegionHsv);
-        int pointCount = touchedRect.width * touchedRect.height;
-        for (int i = 0; i < mBlobColorHsv.val.length; i++)
-            mBlobColorHsv.val[i] /= pointCount;
-
-        mBlobColorRgba = Utilities.convertScalarHsv2Rgba(mBlobColorHsv);
-
-        Toast.makeText(getApplicationContext(), "Touched", Toast.LENGTH_LONG).show();
-        Log.i(TAG, "Touched rgba color: (" + mBlobColorRgba.val[0] + ", " + mBlobColorRgba.val[1] +
-                ", " + mBlobColorRgba.val[2] + ", " + mBlobColorRgba.val[3] + ")");
-
-        ivDetectionColor.setBackgroundColor(Color.rgb((int) mBlobColorRgba.val[0], (int) mBlobColorRgba.val[1], (int) mBlobColorRgba.val[2]));
-
-        mDetector.setHsvColor(mBlobColorHsv);
-
-        Imgproc.resize(mDetector.getSpectrum(), mSpectrum, SPECTRUM_SIZE);
-
-        mIsColorSelected = true;
-
-        touchedRegionRgba.release();
-        touchedRegionHsv.release();
-
-        return false; // don't need subsequent touch events
-    }*/
 }

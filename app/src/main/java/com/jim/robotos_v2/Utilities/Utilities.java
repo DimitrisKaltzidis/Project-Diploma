@@ -11,7 +11,6 @@ import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -69,7 +68,7 @@ public class Utilities {
             azimuth = orientation[0]; // orientation contains: azimut, pitch and roll
             azimuth = (float) Math.toDegrees(azimuth) + 90;
             azimuth = (azimuth + 360) % 360;
-           // Log.d("AZIMUTH", " " + azimuth);
+            // Log.d("AZIMUTH", " " + azimuth);
         }
 
         return azimuth;
@@ -204,6 +203,47 @@ public class Utilities {
         }
     }
 
+    public static void setDirectionImage(String command, ImageView ivDirection, Bluetooth bluetooth) {
+
+        int directionDrawable;
+        int strCmndToInt = -1;
+        switch (command) {
+            case "FORWARD":
+                directionDrawable = R.drawable.forward;
+                strCmndToInt = 0;
+                break;
+            case "LEFT":
+                directionDrawable = R.drawable.rotate_left;
+                strCmndToInt = 1;
+                break;
+            case "RIGHT":
+                directionDrawable = R.drawable.rotate_right;
+                strCmndToInt = 2;
+                break;
+            case "BACKWARD":
+                directionDrawable = R.drawable.backward;
+                strCmndToInt = 4;
+                break;
+            case "STOP":
+                directionDrawable = R.drawable.stop;
+                strCmndToInt = 3;
+                break;
+            default:
+                directionDrawable = R.drawable.stop;
+                strCmndToInt = 3;
+
+        }
+
+        try {
+            bluetooth.sendMessage(Integer.toString(strCmndToInt));
+            ivDirection.setImageResource(directionDrawable);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e("DIRECTIONS", "COULD NOT SET DIRECTION IMAGE");
+            Log.e("BLUETOOTH", "COULD NOT SEND DIRECTION TO ROBOT");
+        }
+    }
+
     public static boolean inRange(float compassBearing, float desiredBearing, float bearingRange) {
 
         boolean adjusted = false;
@@ -273,7 +313,6 @@ public class Utilities {
             ivCompass.setImageResource(R.drawable.wrong_direction);
         }
     }
-
 
     public static float compassAnimationHandler(ImageView ivCompass, float compassBearingDegrees, float currentDegree) {
 
@@ -484,7 +523,7 @@ public class Utilities {
                         command = "RIGHT";
                     }
                 }
-            }else{
+            } else {
                 command = "STOP";
             }
             Utilities.setDirectionImage(command, ivDirection, bt);
@@ -493,28 +532,32 @@ public class Utilities {
             Utilities.setDirectionImage("STOP", ivDirection, bt);
         }
     }
-    static int counter =0;
 
-    public static int normalizeReadingsFromDistanceSensor(int currentSensorValue,int previousSensorValue){
+    static int counter = 0;
+
+    public static int normalizeReadingsFromDistanceSensor(int currentSensorValue, int previousSensorValue) {
 
 
-        if(counter == 0){
+        if (counter == 0) {
             return currentSensorValue;
         }
 
-        if(currentSensorValue<20){
+        if (currentSensorValue < 20) {
             return previousSensorValue;
         }
 
 
-
-        if(abs(previousSensorValue - currentSensorValue)>40){
+        if (abs(previousSensorValue - currentSensorValue) > 40) {
             return previousSensorValue;
-        }else {
+        } else {
             return currentSensorValue;
         }
 
 
+    }
+
+    public static float calculateDistanceBetweenTwoPoints(org.opencv.core.Point pointA, org.opencv.core.Point pointB) {
+        return (float) Math.sqrt(Math.pow(pointA.x - pointB.x, 2) + Math.pow(pointA.y - pointB.y, 2));
     }
 
 }

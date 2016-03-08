@@ -6,8 +6,11 @@
     <color name="background">#242424</color>
     <color name="black_transparent">#B3000000</color>
     <color name="black">#000000</color>
-    <color name="red">#FF1100</color>
+    <color name="red_area">#D32F2F</color>
+    <color name="green_area">#388E3C</color>
     <color name="blue">#728cc9</color>
     <color name="green">#9abd2f</color>
     <color name="grey">#a0a0a0</color>
+    <color name="lime">#9abd2f</color>
+    <color name="red_soft">#c75c5c</color>
 </resources>

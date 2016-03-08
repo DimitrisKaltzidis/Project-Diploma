@@ -11,8 +11,8 @@
         android:layout_marginRight="4dp"
         android:layout_marginTop="16dp"
         android:hint="@string/red"
-        android:inputType="number"
-        android:textColorHint="@color/red_area" />
+        android:textColorHint="@color/red_area"
+        android:inputType="number" />
 
     <EditText
         android:id="@+id/etGreen"
@@ -22,9 +22,9 @@
         android:layout_marginRight="4dp"
         android:layout_marginTop="4dp"
         android:fontFamily="sans-serif"
+        android:textColorHint="@color/green"
         android:hint="@string/green"
-        android:inputType="number"
-        android:textColorHint="@color/green" />
+        android:inputType="number" />
 
     <EditText
         android:id="@+id/etBlue"
@@ -34,8 +34,8 @@
         android:layout_marginRight="4dp"
         android:fontFamily="sans-serif"
         android:hint="@string/blue"
-        android:inputType="number"
-        android:textColorHint="@color/blue" />
+        android:textColorHint="@color/blue"
+        android:inputType="number" />
 
     <EditText
         android:id="@+id/etAlpha"
@@ -46,8 +46,8 @@
         android:layout_marginRight="4dp"
         android:fontFamily="sans-serif"
         android:hint="@string/alpha"
-        android:inputType="number"
-        android:textColorHint="@color/grey" />
+        android:textColorHint="@color/grey"
+        android:inputType="number" />
 
     <ImageView
         android:id="@+id/ivDetectionColorDialog"

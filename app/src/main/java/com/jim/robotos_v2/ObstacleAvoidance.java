@@ -63,9 +63,6 @@ import java.util.List;
 import java.util.Locale;
 
 public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapClickListener, SensorEventListener, View.OnLongClickListener, /*View.OnTouchListener,*/ CameraBridgeViewBase.CvCameraViewListener2 {
-    static String TAG = "HANDLER";
-    private static StringBuilder sb = new StringBuilder();
-    int counter = 0;
     private GoogleMap mMap;
     private LocationRequest mLocationRequest;
     private GoogleApiClient mGoogleApiClient;
@@ -82,51 +79,10 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
     private TextToSpeech textToSpeech;
     private Bluetooth bt;
     private Thread directionThread;
+    private static StringBuilder sb = new StringBuilder();
     private int distanceToObstacle = 2000;
-    Handler mHandler = new Handler(new Handler.Callback() {
-        @Override
-        public boolean handleMessage(Message msg) {
-            switch (msg.what) {
-                case Bluetooth.MESSAGE_STATE_CHANGE:
-                    Log.d(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
-                    break;
-                case Bluetooth.MESSAGE_WRITE:
-                    Log.d(TAG, "MESSAGE_WRITE ");
-                    break;
-                case Bluetooth.MESSAGE_READ:
-                    byte[] readBuf = (byte[]) msg.obj;
-                    String strIncom = new String(readBuf, 0, msg.arg1);
-                    sb.append(strIncom);
-                    int endOfLineIndex = sb.indexOf("\r\n");                            // determine the end-of-line
-                    if (endOfLineIndex > 0) {                                            // if end-of-line,
-                        String sbprint = sb.substring(0, endOfLineIndex);               // extract string
-                        sb.delete(0, sb.length());   // and clear
 
 
-                        Log.d("READ_FROM_ARDUINO", sbprint + "");
-                        try {
-
-                            distanceToObstacle = Utilities.normalizeReadingsFromDistanceSensor(Integer.parseInt(sbprint), distanceToObstacle);
-
-                            Log.d("READ_FROM_ARDUINO_NORM", distanceToObstacle + "");
-                            tvDistance.setText(distanceToObstacle + "cm");
-                            //distanceToObstacle = Integer.parseInt(sbprint);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            Log.e(TAG, "handleMessage: CRASH CONVERSION");
-                        }
-                    }
-                    break;
-                case Bluetooth.MESSAGE_DEVICE_NAME:
-                    Log.d(TAG, "MESSAGE_DEVICE_NAME " + msg);
-                    break;
-                case Bluetooth.MESSAGE_TOAST:
-                    Log.d(TAG, "MESSAGE_TOAST " + msg);
-                    break;
-            }
-            return false;
-        }
-    });
     private CameraBridgeViewBase mOpenCvCameraView;
     private Mat mRgba;
     private Scalar mBlobColorRgba;
@@ -140,9 +96,12 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
     private double cameraViewWidth;
     private int contourColor, pointColor, smallAreaColor, bigAreaColor;
     private int areaLeft, areaRight;
+
     private Sensor gSensor;
     private Sensor mSensor;
+
     private String mode = "PATH";
+
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
@@ -160,9 +119,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
             }
         }
     };
-    private Rect temp;
-    private org.opencv.core.Point rectTopLeft;
-    private double leftLineWidth = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -341,6 +298,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
         ivDetectionColor = (ImageView) findViewById(R.id.ivDetectionColor);
     }
 
+
     protected void startLocationUpdates() {
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 mGoogleApiClient, mLocationRequest, this);
@@ -350,6 +308,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
         LocationServices.FusedLocationApi.removeLocationUpdates(
                 mGoogleApiClient, this);
     }
+
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -381,6 +340,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
         }
     }
 
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -411,6 +371,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
         if (!mGoogleApiClient.isConnected())
             mGoogleApiClient.connect();
     }
+
 
     @Override
     protected void onStop() {
@@ -452,6 +413,8 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
         MapUtilities.drawPathOnMap(mMap, route, getResources());
         robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(), getApplicationContext());
     }
+
+    int counter = 0;
 
     @Override
     public void onSensorChanged(SensorEvent event) {
@@ -523,6 +486,53 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
             ivBluetooth.setImageResource(R.drawable.disconnected);
         }
     }
+
+    static String TAG = "HANDLER";
+
+    Handler mHandler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            switch (msg.what) {
+                case Bluetooth.MESSAGE_STATE_CHANGE:
+                    Log.d(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
+                    break;
+                case Bluetooth.MESSAGE_WRITE:
+                    Log.d(TAG, "MESSAGE_WRITE ");
+                    break;
+                case Bluetooth.MESSAGE_READ:
+                    byte[] readBuf = (byte[]) msg.obj;
+                    String strIncom = new String(readBuf, 0, msg.arg1);
+                    sb.append(strIncom);
+                    int endOfLineIndex = sb.indexOf("\r\n");                            // determine the end-of-line
+                    if (endOfLineIndex > 0) {                                            // if end-of-line,
+                        String sbprint = sb.substring(0, endOfLineIndex);               // extract string
+                        sb.delete(0, sb.length());   // and clear
+
+
+                        Log.d("READ_FROM_ARDUINO", sbprint + "");
+                        try {
+
+                            distanceToObstacle = Utilities.normalizeReadingsFromDistanceSensor(Integer.parseInt(sbprint), distanceToObstacle);
+
+                            Log.d("READ_FROM_ARDUINO_NORM", distanceToObstacle + "");
+                            tvDistance.setText(distanceToObstacle + "cm");
+                            //distanceToObstacle = Integer.parseInt(sbprint);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Log.e(TAG, "handleMessage: CRASH CONVERSION");
+                        }
+                    }
+                    break;
+                case Bluetooth.MESSAGE_DEVICE_NAME:
+                    Log.d(TAG, "MESSAGE_DEVICE_NAME " + msg);
+                    break;
+                case Bluetooth.MESSAGE_TOAST:
+                    Log.d(TAG, "MESSAGE_TOAST " + msg);
+                    break;
+            }
+            return false;
+        }
+    });
 
     @Override
     public boolean onLongClick(View v) {
@@ -624,6 +634,11 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
     public void onCameraViewStopped() {
 
     }
+
+    private Rect temp;
+    private org.opencv.core.Point rectTopLeft;
+    private double leftLineWidth = 0;
+
 
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {

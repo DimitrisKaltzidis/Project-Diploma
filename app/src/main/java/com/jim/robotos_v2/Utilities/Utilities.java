@@ -203,47 +203,6 @@ public class Utilities {
         }
     }
 
-    public static void setDirectionImage(String command, ImageView ivDirection, Bluetooth bluetooth) {
-
-        int directionDrawable;
-        int strCmndToInt = -1;
-        switch (command) {
-            case "FORWARD":
-                directionDrawable = R.drawable.forward;
-                strCmndToInt = 0;
-                break;
-            case "LEFT":
-                directionDrawable = R.drawable.rotate_left;
-                strCmndToInt = 1;
-                break;
-            case "RIGHT":
-                directionDrawable = R.drawable.rotate_right;
-                strCmndToInt = 2;
-                break;
-            case "BACKWARD":
-                directionDrawable = R.drawable.backward;
-                strCmndToInt = 4;
-                break;
-            case "STOP":
-                directionDrawable = R.drawable.stop;
-                strCmndToInt = 3;
-                break;
-            default:
-                directionDrawable = R.drawable.stop;
-                strCmndToInt = 3;
-
-        }
-
-        try {
-            bluetooth.sendMessage(Integer.toString(strCmndToInt));
-            ivDirection.setImageResource(directionDrawable);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.e("DIRECTIONS", "COULD NOT SET DIRECTION IMAGE");
-            Log.e("BLUETOOTH", "COULD NOT SEND DIRECTION TO ROBOT");
-        }
-    }
-
     public static boolean inRange(float compassBearing, float desiredBearing, float bearingRange) {
 
         boolean adjusted = false;
@@ -313,6 +272,7 @@ public class Utilities {
             ivCompass.setImageResource(R.drawable.wrong_direction);
         }
     }
+
 
     public static float compassAnimationHandler(ImageView ivCompass, float compassBearingDegrees, float currentDegree) {
 

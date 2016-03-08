@@ -42,47 +42,7 @@ import java.util.List;
 public class ColorDetection extends AppCompatActivity implements View.OnTouchListener, CameraBridgeViewBase.CvCameraViewListener2 {
 
     private static final String TAG = "ColorDetection";
-    private static StringBuilder sb = new StringBuilder();
-    private static TextView tvDistance;
-    private static int distanceToObject = 200000;
-    Handler mHandler = new Handler(new Handler.Callback() {
-        @Override
-        public boolean handleMessage(Message msg) {
-            switch (msg.what) {
-                case Bluetooth.MESSAGE_STATE_CHANGE:
-                    Log.d(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
-                    break;
-                case Bluetooth.MESSAGE_WRITE:
-                    Log.d(TAG, "MESSAGE_WRITE ");
-                    break;
-                case Bluetooth.MESSAGE_READ:
-                    byte[] readBuf = (byte[]) msg.obj;
-                    String strIncom = new String(readBuf, 0, msg.arg1);
-                    sb.append(strIncom);
-                    int endOfLineIndex = sb.indexOf("\r\n");                            // determine the end-of-line
-                    if (endOfLineIndex > 0) {                                            // if end-of-line,
-                        String sbprint = sb.substring(0, endOfLineIndex);               // extract string
-                        sb.delete(0, sb.length());                                      // and clear
-                        //  Log.d("READ_FROM_ARDUINO", sbprint);
-                        tvDistance.setText(sbprint + "cm");
-                        try {
-                            distanceToObject = Integer.parseInt(sbprint);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            Log.e("ERROR", "could not parse string to integer");
-                        }
-                    }
-                    break;
-                case Bluetooth.MESSAGE_DEVICE_NAME:
-                    Log.d(TAG, "MESSAGE_DEVICE_NAME " + msg);
-                    break;
-                case Bluetooth.MESSAGE_TOAST:
-                    Log.d(TAG, "MESSAGE_TOAST " + msg);
-                    break;
-            }
-            return false;
-        }
-    });
+
     private boolean mIsColorSelected = false;
     private Mat mRgba;
     private Scalar mBlobColorRgba;
@@ -94,10 +54,15 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
     private Bluetooth bt;
     private double bottomLineHeight, cameraViewHeight = 0, cameraViewWidth = 0, leftLineWidth = 0, rightLineWidth = 0;
     private Thread directionThread;
+    private static StringBuilder sb = new StringBuilder();
     private ImageView ivDirection, ivBluetooth, ivDetectionColor;
+    private static TextView tvDistance;
     private Rect temp;
     private org.opencv.core.Point rectTopLeft;
+    private static int distanceToObject = 200000;
+
     private CameraBridgeViewBase mOpenCvCameraView;
+
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
@@ -115,6 +80,7 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
             }
         }
     };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -344,6 +310,45 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
             ivBluetooth.setImageResource(R.drawable.disconnected);
         }
     }
+
+    Handler mHandler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            switch (msg.what) {
+                case Bluetooth.MESSAGE_STATE_CHANGE:
+                    Log.d(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
+                    break;
+                case Bluetooth.MESSAGE_WRITE:
+                    Log.d(TAG, "MESSAGE_WRITE ");
+                    break;
+                case Bluetooth.MESSAGE_READ:
+                    byte[] readBuf = (byte[]) msg.obj;
+                    String strIncom = new String(readBuf, 0, msg.arg1);
+                    sb.append(strIncom);
+                    int endOfLineIndex = sb.indexOf("\r\n");                            // determine the end-of-line
+                    if (endOfLineIndex > 0) {                                            // if end-of-line,
+                        String sbprint = sb.substring(0, endOfLineIndex);               // extract string
+                        sb.delete(0, sb.length());                                      // and clear
+                        //  Log.d("READ_FROM_ARDUINO", sbprint);
+                        tvDistance.setText(sbprint + "cm");
+                        try {
+                            distanceToObject = Integer.parseInt(sbprint);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Log.e("ERROR", "could not parse string to integer");
+                        }
+                    }
+                    break;
+                case Bluetooth.MESSAGE_DEVICE_NAME:
+                    Log.d(TAG, "MESSAGE_DEVICE_NAME " + msg);
+                    break;
+                case Bluetooth.MESSAGE_TOAST:
+                    Log.d(TAG, "MESSAGE_TOAST " + msg);
+                    break;
+            }
+            return false;
+        }
+    });
 
     public void detectionColorClicked(View view) {
 

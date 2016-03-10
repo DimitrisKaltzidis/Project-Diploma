@@ -42,6 +42,7 @@ public class Utilities {
 
     static float[] mGravity = new float[3];
     static float[] mGeomagnetic = new float[3];
+    static String previousCommand = "STOP";
 
     public static float landscapeModeCompassCalibration(SensorEvent event) {
 
@@ -193,13 +194,18 @@ public class Utilities {
 
         }
 
-        try {
-            bluetooth.sendMessage(Integer.toString(strCmndToInt));
-            ivDirection.setImageResource(directionDrawable);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.e("DIRECTIONS", "COULD NOT SET DIRECTION IMAGE");
-            Log.e("BLUETOOTH", "COULD NOT SEND DIRECTION TO ROBOT");
+
+        Log.d("COMMAND SEND", "previous:" + previousCommand + " current:" + command);
+        if (!command.equals(previousCommand)) {
+            try {
+                bluetooth.sendMessage(Integer.toString(strCmndToInt));
+                ivDirection.setImageResource(directionDrawable);
+                previousCommand = command;
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.e("DIRECTIONS", "COULD NOT SET DIRECTION IMAGE");
+                Log.e("BLUETOOTH", "COULD NOT SEND DIRECTION TO ROBOT");
+            }
         }
     }
 
@@ -518,6 +524,10 @@ public class Utilities {
 
     public static float calculateDistanceBetweenTwoPoints(org.opencv.core.Point pointA, org.opencv.core.Point pointB) {
         return (float) Math.sqrt(Math.pow(pointA.x - pointB.x, 2) + Math.pow(pointA.y - pointB.y, 2));
+    }
+
+    public static void giveDirectionObstacleAvoidance(ImageView ivDirection, Bluetooth bt, String command) {
+        setDirectionImage(command, ivDirection, bt);
     }
 
 }

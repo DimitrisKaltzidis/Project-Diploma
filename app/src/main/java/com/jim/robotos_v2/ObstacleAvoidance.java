@@ -81,7 +81,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
     private Thread directionThread;
     private static StringBuilder sb = new StringBuilder();
     private int distanceToObstacle = 2000;
-
+    private float obstacleCompassDegrees, obstacleAvoidanceDegrees;
 
     private CameraBridgeViewBase mOpenCvCameraView;
     private Mat mRgba;
@@ -132,6 +132,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
         mOpenCvCameraView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+
                 int cols = mRgba.cols();
                 int rows = mRgba.rows();
 
@@ -255,7 +256,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
                                                     225.0f, 225.0f, 0.5625f, 0.26666668f,
                                                     0, 1.0f, 1.0f,
                                                     4, 0);
-
+                                            obstacleCompassDegrees = compassBearingDegrees;
                                             mOpenCvCameraView.dispatchTouchEvent(motionEvent);
                                         }
                                     }
@@ -651,7 +652,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
             try {
                 if (!contours.isEmpty()) {
                     temp = Imgproc.boundingRect(contours.get(0));
-                    Core.rectangle(mRgba, temp.tl(), temp.br(), new Scalar(Color.red(contourColor), Color.green(contourColor), Color.blue(contourColor)), 3);
+                    //Core.rectangle(mRgba, temp.tl(), temp.br(), new Scalar(Color.red(contourColor), Color.green(contourColor), Color.blue(contourColor)), 3);
 
                     //Top Left of detected color area
                     rectTopLeft = temp.tl();
@@ -673,23 +674,38 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
                         areaRight = (int) Utilities.calculateDistanceBetweenTwoPoints(topMiddle, topRight) * temp.height;
 
                         if (areaRight > areaLeft) {
-                            Core.rectangle(mRgba, topMiddle, bottomRight, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor)), -3);
-                            Core.rectangle(mRgba, topLeft, bottomMiddle, new Scalar(Color.red(smallAreaColor), Color.green(smallAreaColor), Color.blue(smallAreaColor)), -3);
-
+                            Core.rectangle(mRgba, topMiddle, bottomRight, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor), Color.alpha(bigAreaColor)), -3);
+                            Core.rectangle(mRgba, topLeft, bottomMiddle, new Scalar(Color.red(smallAreaColor), Color.green(smallAreaColor), Color.blue(smallAreaColor), Color.alpha(smallAreaColor)), -3);
+                            Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "LEFT");
                         } else if (areaRight < areaLeft) {
-                            Core.rectangle(mRgba, topMiddle, bottomRight, new Scalar(Color.red(smallAreaColor), Color.green(smallAreaColor), Color.blue(smallAreaColor)), -3);
-                            Core.rectangle(mRgba, topLeft, bottomMiddle, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor)), -3);
+                            Core.rectangle(mRgba, topMiddle, bottomRight, new Scalar(Color.red(smallAreaColor), Color.green(smallAreaColor), Color.blue(smallAreaColor), Color.alpha(smallAreaColor)), -3);
+                            Core.rectangle(mRgba, topLeft, bottomMiddle, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor), Color.alpha(bigAreaColor)), -3);
+                            Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "RIGHT");
+                        } else if (areaRight == areaLeft) {
+                            Core.rectangle(mRgba, topMiddle, bottomRight, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor), Color.alpha(bigAreaColor)), -3);
+                            Core.rectangle(mRgba, topLeft, bottomMiddle, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor), Color.alpha(bigAreaColor)), -3);
 
-                        } else {
-                            Core.rectangle(mRgba, topMiddle, bottomRight, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor)), -3);
-                            Core.rectangle(mRgba, topLeft, bottomMiddle, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor)), -3);
+                            if (Utilities.calculateDistanceBetweenTwoPoints(topLeft, topMiddle) == mRgba.width() / 2) {//full screen
+                                Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "BACKWARD");
+                            } else {/// an den pianei oli tin othoni
+                                Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "RIGHT");
+                            }
                         }
 
                     } else {
+
                         topMiddle = null;
                         bottomMiddle = null;
                         areaRight = 0;
                         areaLeft = 0;
+                        Core.rectangle(mRgba, temp.tl(), temp.br(), new Scalar(Color.red(contourColor), Color.green(contourColor), Color.blue(contourColor)), -3);
+
+                        if (topLeft.x < mRgba.width() / 2 && topRight.x < mRgba.width() / 2) {
+                            Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "RIGHT");
+                        } else if (topLeft.x > mRgba.width() / 2 && topRight.x > mRgba.width() / 2) {
+                            Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "LEFT");
+                        }
+
                     }
 
 
@@ -702,6 +718,9 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
 
 
                     // Core.line(mRgba, new org.opencv.core.Point(mRgba.width() / 2, 0), new org.opencv.core.Point(mRgba.width() / 2, mRgba.height()), new Scalar(255, 0, 0, 255), 5);
+                } else {
+                    Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "STOP");
+                    obstacleAvoidanceDegrees = compassBearingDegrees;
                 }
             } catch (Exception e) {
                 e.printStackTrace();

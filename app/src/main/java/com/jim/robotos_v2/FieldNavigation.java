@@ -1,7 +1,6 @@
 package com.jim.robotos_v2;
 
 import android.bluetooth.BluetoothAdapter;
-import android.content.res.Configuration;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -230,7 +229,7 @@ public class FieldNavigation extends AppCompatActivity implements OnMapReadyCall
 
     @Override
     public void onMapClick(LatLng latLng) {
-        route.addPoint(new Point(latLng, "Point " + route.getPointsNumber()));
+        route.addPoint(new Point(latLng, "Point " + route.getPointsNumber(), false));
         MapUtilities.drawPathOnMap(mMap, route, getResources());
         robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(), getApplicationContext());
     }
@@ -290,7 +289,7 @@ public class FieldNavigation extends AppCompatActivity implements OnMapReadyCall
 
     public void addMyLocationToRoute(View view) {
         if (!running) {
-            route.addPoint(new Point(new LatLng(robotLocation.getLatitude(), robotLocation.getLongitude()), "Point " + route.getPointsNumber()));
+            route.addPoint(new Point(new LatLng(robotLocation.getLatitude(), robotLocation.getLongitude()), "Point " + route.getPointsNumber(), false));
             MapUtilities.drawPathOnMap(mMap, route, getResources());
             robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(), getApplicationContext());
         }
@@ -357,7 +356,7 @@ public class FieldNavigation extends AppCompatActivity implements OnMapReadyCall
     @Override
     public boolean onLongClick(View v) {
 
-        final Point pointToAdd = new Point(new LatLng(-31.90, 115.86), "Point " + route.getPointsNumber());
+        final Point pointToAdd = new Point(new LatLng(-31.90, 115.86), "Point " + route.getPointsNumber(), false);
 
         final MaterialDialog dialog = new MaterialDialog.Builder(this)
                 .title(R.string.new_point)

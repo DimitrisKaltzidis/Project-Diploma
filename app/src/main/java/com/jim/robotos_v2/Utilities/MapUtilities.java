@@ -3,7 +3,6 @@ package com.jim.robotos_v2.Utilities;
 import android.content.Context;
 import android.content.res.Resources;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -30,7 +29,7 @@ public class MapUtilities {
             Log.d("ERROR", "CAN NOT CLEAR THE MAP");
         }
 
-        PolylineOptions options = new PolylineOptions().width(6).color(resources.getColor(R.color.colorPrimary)).geodesic(true);
+        PolylineOptions options = new PolylineOptions().width(8).color(resources.getColor(R.color.colorPrimary)).geodesic(true);
 
         for (Point point: route.getRoute()) {
             options.add(point.getPosition());

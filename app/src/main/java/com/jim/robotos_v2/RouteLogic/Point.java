@@ -9,20 +9,23 @@ public class Point {
     private LatLng position;
     private boolean isVisited;
     private String name;
+    private boolean systemDefined1;
 
-    public Point(LatLng position, String name) {
+    public Point(LatLng position, String name, boolean systemDefined) {
         this.position = position;
         this.isVisited = false;
         this.name = name;
+        systemDefined1 = systemDefined;
     }
 
     public Point() {
     }
+
     public LatLng getPosition() {
         return position;
     }
 
-    public Location getPositionAsLocationobject(){
+    public Location getPositionAsLocationobject() {
         Location temp = new Location("Point Location");
         temp.setLatitude(position.latitude);
         temp.setLongitude(position.longitude);
@@ -57,4 +60,11 @@ public class Point {
         isVisited = visited;
     }
 
+    public boolean isSystemDefined1() {
+        return systemDefined1;
+    }
+
+    public void setSystemDefined1(boolean systemDefined1) {
+        this.systemDefined1 = systemDefined1;
+    }
 }

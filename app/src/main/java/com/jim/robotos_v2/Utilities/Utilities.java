@@ -42,7 +42,16 @@ public class Utilities {
 
     static float[] mGravity = new float[3];
     static float[] mGeomagnetic = new float[3];
-    static String previousCommand = "STOP";
+    /**
+     * the length of one minute of latitude in meters, i.e. one nautical mile in meters.
+     */
+    private static final double MINUTES_TO_METERS = 1852d;
+    /**
+     * the amount of minutes in one degree.
+     */
+    private static final double DEGREE_TO_MINUTES = 60d;
+
+    // static String previousCommand = "STOP";
 
     public static float landscapeModeCompassCalibration(SensorEvent event) {
 
@@ -195,18 +204,18 @@ public class Utilities {
         }
 
 
-        Log.d("COMMAND SEND", "previous:" + previousCommand + " current:" + command);
-        if (!command.equals(previousCommand)) {
-            try {
-                bluetooth.sendMessage(Integer.toString(strCmndToInt));
-                ivDirection.setImageResource(directionDrawable);
-                previousCommand = command;
-            } catch (Exception e) {
-                e.printStackTrace();
-                Log.e("DIRECTIONS", "COULD NOT SET DIRECTION IMAGE");
-                Log.e("BLUETOOTH", "COULD NOT SEND DIRECTION TO ROBOT");
-            }
+   /*     Log.d("COMMAND SEND", "previous:" + previousCommand + " current:" + command);
+        if (!command.equals(previousCommand)) {*/
+        try {
+            bluetooth.sendMessage(Integer.toString(strCmndToInt));
+            ivDirection.setImageResource(directionDrawable);
+            // previousCommand = command;
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e("DIRECTIONS", "COULD NOT SET DIRECTION IMAGE");
+            Log.e("BLUETOOTH", "COULD NOT SEND DIRECTION TO ROBOT");
         }
+        // }
     }
 
     public static boolean inRange(float compassBearing, float desiredBearing, float bearingRange) {
@@ -419,7 +428,7 @@ public class Utilities {
             List<LatLng> list = decodePoly(encodedString);
 
             for (LatLng latLng : list) {
-                route.addPoint(new Point(latLng, "Point " + route.getPointsNumber()));
+                route.addPoint(new Point(latLng, "Point " + route.getPointsNumber(), false));
             }
 
         } catch (JSONException e) {
@@ -526,8 +535,52 @@ public class Utilities {
         return (float) Math.sqrt(Math.pow(pointA.x - pointB.x, 2) + Math.pow(pointA.y - pointB.y, 2));
     }
 
-    public static void giveDirectionObstacleAvoidance(ImageView ivDirection, Bluetooth bt, String command) {
-        setDirectionImage(command, ivDirection, bt);
+    public static void giveDirectionObstacleAvoidance(ImageView ivDirection, Bluetooth bt, String command, String previousCommand) {
+        if (!command.equals(previousCommand))
+            setDirectionImage(command, ivDirection, bt);
+    }
+
+    public static Point calculateObstacleAvoidingPoint(float obstacleAvoidanceDegrees, float obstacleCompassDegrees, int distanceToObstacle, Location robotLocation, float errorRange) {
+
+        //Obstacle-Robot-Point angle
+        float orp = 180 - abs(abs(obstacleCompassDegrees - obstacleAvoidanceDegrees) - 180);
+
+        //Obstacle-Point-Robot angle
+        float opr = 90 - orp;
+
+        //Ration between the two opposite angles
+        float angleRatio = (orp / opr);
+
+        //Obstacle-Point Length
+        float op = angleRatio * distanceToObstacle;
+
+        //Hypotenuse Length
+        float hypotenuse = (float) Math.sqrt((double) Math.pow(distanceToObstacle, 2) + Math.pow(op, 2));
+
+        //Calculate avoiding point coordinates
+        LatLng avoidingPointLatLng = extrapolate(robotLocation, (double) obstacleAvoidanceDegrees, (double) hypotenuse + errorRange);
+
+        return new Point(avoidingPointLatLng, "Obstacle avoiding point", true);
+    }
+
+    public static LatLng extrapolate(Location startingLatLngPoint, final double course,
+                                     final double distance) {
+
+        double startPointLat = startingLatLngPoint.getLatitude();
+        double startPointLon = startingLatLngPoint.getLongitude();
+        final double crs = Math.toRadians(course);
+        final double d12 = Math.toRadians(distance / MINUTES_TO_METERS / DEGREE_TO_MINUTES);
+
+        final double lat1 = Math.toRadians(startPointLat);
+        final double lon1 = Math.toRadians(startPointLon);
+
+        final double lat = Math.asin(Math.sin(lat1) * Math.cos(d12)
+                + Math.cos(lat1) * Math.sin(d12) * Math.cos(crs));
+        final double dlon = Math.atan2(Math.sin(crs) * Math.sin(d12) * Math.cos(lat1),
+                Math.cos(d12) - Math.sin(lat1) * Math.sin(lat));
+        final double lon = (lon1 + dlon + Math.PI) % (2 * Math.PI) - Math.PI;
+
+        return new LatLng(Math.toDegrees(lat), Math.toDegrees(lon));
     }
 
 }

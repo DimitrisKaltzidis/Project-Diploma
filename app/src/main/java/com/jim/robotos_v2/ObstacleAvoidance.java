@@ -96,7 +96,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
     private double cameraViewWidth;
     private int contourColor, pointColor, smallAreaColor, bigAreaColor;
     private int areaLeft, areaRight;
-
+    private String previousCommand = "STOP";
     private Sensor gSensor;
     private Sensor mSensor;
 
@@ -223,6 +223,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
 
         ivAddToRoute.setOnLongClickListener(this);
 
+        ///lathos topothetisi den kerdizw kati apo to thread
         directionThread = new Thread(new Runnable() {
 
             @Override
@@ -243,6 +244,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
 
                                     if (mode.equals("PATH")) {
                                         command = Utilities.giveDirection(compassBearingDegrees, ivDirection, ivCompass, route, robotLocation, getApplicationContext(), command, mMap, getResources(), tvDistance, textToSpeech, bt);
+                                        previousCommand = command;
                                         mIsColorSelected = false;
 
                                     } else if (mode.equals("OBSTACLE")) {
@@ -252,6 +254,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
                                             long eventTime = SystemClock.uptimeMillis() + 100;
 
                                             Utilities.setDirectionImage("STOP", ivDirection, bt);
+                                            previousCommand = "STOP";
                                             MotionEvent motionEvent = MotionEvent.obtain(downTime, eventTime, 0,
                                                     225.0f, 225.0f, 0.5625f, 0.26666668f,
                                                     0, 1.0f, 1.0f,
@@ -410,7 +413,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
 
     @Override
     public void onMapClick(LatLng latLng) {
-        route.addPoint(new Point(latLng, "Point " + route.getPointsNumber()));
+        route.addPoint(new Point(latLng, "Point " + route.getPointsNumber(), false));
         MapUtilities.drawPathOnMap(mMap, route, getResources());
         robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(), getApplicationContext());
     }
@@ -459,7 +462,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
 
     public void addMyLocationToRoute(View view) {
         if (!running) {
-            route.addPoint(new Point(new LatLng(robotLocation.getLatitude(), robotLocation.getLongitude()), "Point " + route.getPointsNumber()));
+            route.addPoint(new Point(new LatLng(robotLocation.getLatitude(), robotLocation.getLongitude()), "Point " + route.getPointsNumber(), false));
             MapUtilities.drawPathOnMap(mMap, route, getResources());
             robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(), getApplicationContext());
         }
@@ -538,7 +541,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
     @Override
     public boolean onLongClick(View v) {
 
-        final Point pointToAdd = new Point(new LatLng(-31.90, 115.86), "Point " + route.getPointsNumber());
+        final Point pointToAdd = new Point(new LatLng(-31.90, 115.86), "Point " + route.getPointsNumber(), false);
 
         final MaterialDialog dialog = new MaterialDialog.Builder(this)
                 .title(R.string.new_point)
@@ -676,19 +679,23 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
                         if (areaRight > areaLeft) {
                             Core.rectangle(mRgba, topMiddle, bottomRight, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor), Color.alpha(bigAreaColor)), -3);
                             Core.rectangle(mRgba, topLeft, bottomMiddle, new Scalar(Color.red(smallAreaColor), Color.green(smallAreaColor), Color.blue(smallAreaColor), Color.alpha(smallAreaColor)), -3);
-                            Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "LEFT");
+                            Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "LEFT", previousCommand);
+                            previousCommand = "LEFT";
                         } else if (areaRight < areaLeft) {
                             Core.rectangle(mRgba, topMiddle, bottomRight, new Scalar(Color.red(smallAreaColor), Color.green(smallAreaColor), Color.blue(smallAreaColor), Color.alpha(smallAreaColor)), -3);
                             Core.rectangle(mRgba, topLeft, bottomMiddle, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor), Color.alpha(bigAreaColor)), -3);
-                            Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "RIGHT");
+                            Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "RIGHT", previousCommand);
+                            previousCommand = "RIGHT";
                         } else if (areaRight == areaLeft) {
                             Core.rectangle(mRgba, topMiddle, bottomRight, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor), Color.alpha(bigAreaColor)), -3);
                             Core.rectangle(mRgba, topLeft, bottomMiddle, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor), Color.alpha(bigAreaColor)), -3);
 
                             if (Utilities.calculateDistanceBetweenTwoPoints(topLeft, topMiddle) == mRgba.width() / 2) {//full screen
-                                Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "BACKWARD");
+                                Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "BACKWARD", previousCommand);
+                                previousCommand = "BACKWARD";
                             } else {/// an den pianei oli tin othoni
-                                Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "RIGHT");
+                                Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "RIGHT", previousCommand);
+                                previousCommand = "RIGHT";
                             }
                         }
 
@@ -701,9 +708,11 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
                         Core.rectangle(mRgba, temp.tl(), temp.br(), new Scalar(Color.red(contourColor), Color.green(contourColor), Color.blue(contourColor)), -3);
 
                         if (topLeft.x < mRgba.width() / 2 && topRight.x < mRgba.width() / 2) {
-                            Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "RIGHT");
+                            Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "RIGHT", previousCommand);
+                            previousCommand = "RIGHT";
                         } else if (topLeft.x > mRgba.width() / 2 && topRight.x > mRgba.width() / 2) {
-                            Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "LEFT");
+                            Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "LEFT", previousCommand);
+                            previousCommand = "LEFT";
                         }
 
                     }
@@ -719,8 +728,16 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
 
                     // Core.line(mRgba, new org.opencv.core.Point(mRgba.width() / 2, 0), new org.opencv.core.Point(mRgba.width() / 2, mRgba.height()), new Scalar(255, 0, 0, 255), 5);
                 } else {
-                    Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "STOP");
+                    Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "STOP", previousCommand);
+                    previousCommand = "STOP";
+                    Toast.makeText(getApplicationContext(), "Took place", Toast.LENGTH_SHORT).show();
+                    mIsColorSelected = false;
                     obstacleAvoidanceDegrees = compassBearingDegrees;
+
+                    Point systemDefinedPoint = Utilities.calculateObstacleAvoidingPoint(obstacleAvoidanceDegrees, obstacleCompassDegrees, distanceToObstacle, robotLocation, Preferences.loadPrefsFloat("DISTANCE_ERROR_RANGE", 3, getApplicationContext()));
+                    ////  route.a
+                    /// ADD TO ROUTE
+
                 }
             } catch (Exception e) {
                 e.printStackTrace();

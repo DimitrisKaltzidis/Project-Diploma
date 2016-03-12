@@ -37,6 +37,7 @@ import static java.lang.Math.abs;
 
 /**
  * Created by the awesome and extraordinary developer Jim on 9/12/2015.
+ * Prepare yourself BAD English imminent
  */
 public class Utilities {
 
@@ -476,6 +477,18 @@ public class Utilities {
         return new Scalar(pointMatHsv.get(0, 0));
     }
 
+    /**
+     * The method that gives commands to the robot while the app is in Color Detection Mode
+     *
+     * @param center           the center of the detecting color
+     * @param distanceToObject the distance to the object
+     * @param bottomLineHeight the height of line that determines if we reached the detected color object
+     * @param leftLineWidth    the left line is the left limit of the area to which if the center is in the command is FORWARD
+     * @param rightLineWidth   the right line is the right limit of the area to which if the center is in the command is FORWARD
+     * @param ivDirection      ImageView to set command on the UI
+     * @param bt               bluetooth object to handle the communication
+     * @param context          the application context to access preferences
+     */
     public static void giveDirectionColorDetection(org.opencv.core.Point center, int distanceToObject, double bottomLineHeight, double leftLineWidth, double rightLineWidth, ImageView ivDirection, Bluetooth bt, Context context) {
         try {
             String command;
@@ -510,6 +523,12 @@ public class Utilities {
 
     static int counter = 0;
 
+
+    /** Eliminates the spikes (glitches) of the robot's proximity sensor based on min difference value(kai kala)
+     * @param currentSensorValue  the current sensor reading
+     * @param previousSensorValue the previous sensor reading
+     * @return the value with no spikes
+     */
     public static int normalizeReadingsFromDistanceSensor(int currentSensorValue, int previousSensorValue) {
 
 
@@ -531,16 +550,39 @@ public class Utilities {
 
     }
 
+    /**Calculates the Euclid distance between two points in Cartesian like surface
+     * @param pointA the first point
+     * @param pointB the second point
+     * @return the distance as float
+     */
     public static float calculateDistanceBetweenTwoPoints(org.opencv.core.Point pointA, org.opencv.core.Point pointB) {
         return (float) Math.sqrt(Math.pow(pointA.x - pointB.x, 2) + Math.pow(pointA.y - pointB.y, 2));
     }
 
+
+    /**Send a command to the robot if the current command is different than the previous; to avoid lag on communication
+     * @param ivDirection ImageView to set command on the UI
+     * @param bt bluetooth object to handle the communication
+     * @param command the command for the robot
+     * @param previousCommand the previous command for the robot
+     */
     public static void giveDirectionObstacleAvoidance(ImageView ivDirection, Bluetooth bt, String command, String previousCommand) {
         if (!command.equals(previousCommand))
             setDirectionImage(command, ivDirection, bt);
     }
 
-    public static Point calculateObstacleAvoidingPoint(float obstacleAvoidanceDegrees, float obstacleCompassDegrees, int distanceToObstacle, Location robotLocation, float errorRange) {
+    /**
+     * Calculates and creates a Point to avoid the obstacle
+     *
+     * @param obstacleAvoidanceDegrees the degrees to avoid the object
+     * @param obstacleCompassDegrees   the degrees the obstacle was detected
+     * @param distanceToObstacle       the distance between the robot and the obstacle
+     * @param robotLocation            the location of the robot (coordinates as Location object)
+     * @param errorRange               error range to consider a obstacle visited
+     * @param context                  the application context to access preferences
+     * @return the Point towards to i must navigate to avoid the obstacle
+     */
+    public static Point calculateObstacleAvoidingPoint(float obstacleAvoidanceDegrees, float obstacleCompassDegrees, int distanceToObstacle, Location robotLocation, float errorRange,Context context) {
 
         //Obstacle-Robot-Point angle
         float orp = 180 - abs(abs(obstacleCompassDegrees - obstacleAvoidanceDegrees) - 180);
@@ -557,12 +599,18 @@ public class Utilities {
         //Hypotenuse Length
         float hypotenuse = (float) Math.sqrt((double) Math.pow(distanceToObstacle, 2) + Math.pow(op, 2));
 
-        //Calculate avoiding point coordinates
-        LatLng avoidingPointLatLng = extrapolate(robotLocation, (double) obstacleAvoidanceDegrees, (double) hypotenuse + errorRange);
+        //Calculate avoiding point coordinates based on angle (might be proven faulty)
+        LatLng avoidingPointLatLng = extrapolate(robotLocation, (double) obstacleAvoidanceDegrees+Preferences.loadPrefsFloat("OBSTACLE_AVOIDING_BEARING_ERROR_RANGE_DEGREES",3f,context), (double) hypotenuse + errorRange);
 
         return new Point(avoidingPointLatLng, "Obstacle avoiding point", true);
     }
 
+    /**Calculates the coordinates of a new point based on given Point Coordinates the distance between them in meters and the angle the user stares
+     * @param startingLatLngPoint  the starting point
+     * @param course the angle representing the course we want to calculate the new point to
+     * @param distance the meters towards that course
+     * @return the new Point coordinates as LatLng object
+     */
     public static LatLng extrapolate(Location startingLatLngPoint, final double course,
                                      final double distance) {
 
@@ -581,6 +629,42 @@ public class Utilities {
         final double lon = (lon1 + dlon + Math.PI) % (2 * Math.PI) - Math.PI;
 
         return new LatLng(Math.toDegrees(lat), Math.toDegrees(lon));
+    }
+
+
+    /**
+     * Calculates the coordinates of a new point based on given Point Coordinates and the x,y offset in meters
+     *
+     * @param currentPoint the starting point
+     * @param xOffset      offset in the X axis of the earth
+     * @param yOffset      offset in the Y axis of the earth
+     * @return the new Point coordinates as LatLng object
+     */
+    public static LatLng calculateNewLatLongPointGivenOffsetInMeters(LatLng currentPoint, int xOffset, int yOffset) {
+        //Position, decimal degrees
+        double lat = currentPoint.latitude;
+        double lon = currentPoint.longitude;
+
+        Log.e("OLD POINT", "LATITUDE: " + lat + " LONGITUDE: " + lon);
+
+        //Earth’s radius, sphere
+        int R = 6378137;
+
+        //offsets in meters
+        int dn = xOffset;
+        int de = yOffset;
+
+        //Coordinate offsets in radians
+        double dLat = dn / R;
+        double dLon = de / (R * Math.cos(Math.PI * lat / 180));
+
+        //OffsetPosition, decimal degrees
+        double latO = lat + dLat * (180 / Math.PI);
+        double lonO = lon + dLon * (180 / Math.PI);
+
+        Log.e("NEW POINT", "LATITUDE: " + latO + " LONGITUDE: " + lonO);
+
+        return new LatLng(latO, lonO);
     }
 
 }

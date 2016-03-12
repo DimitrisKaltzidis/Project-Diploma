@@ -9,13 +9,13 @@ public class Point {
     private LatLng position;
     private boolean isVisited;
     private String name;
-    private boolean systemDefined1;
+    private boolean systemDefined;
 
     public Point(LatLng position, String name, boolean systemDefined) {
         this.position = position;
         this.isVisited = false;
         this.name = name;
-        systemDefined1 = systemDefined;
+        this.systemDefined = systemDefined;
     }
 
     public Point() {
@@ -60,11 +60,11 @@ public class Point {
         isVisited = visited;
     }
 
-    public boolean isSystemDefined1() {
-        return systemDefined1;
+    public boolean isSystemDefined() {
+        return systemDefined;
     }
 
-    public void setSystemDefined1(boolean systemDefined1) {
-        this.systemDefined1 = systemDefined1;
+    public void setSystemDefined(boolean systemDefined) {
+        this.systemDefined = systemDefined;
     }
 }

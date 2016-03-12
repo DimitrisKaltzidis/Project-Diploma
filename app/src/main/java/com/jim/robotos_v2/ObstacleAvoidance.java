@@ -82,7 +82,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
     private static StringBuilder sb = new StringBuilder();
     private int distanceToObstacle = 2000;
     private float obstacleCompassDegrees, obstacleAvoidanceDegrees;
-
+    private Point systemDefinedPoint;
     private CameraBridgeViewBase mOpenCvCameraView;
     private Mat mRgba;
     private Scalar mBlobColorRgba;
@@ -632,6 +632,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
         pointColor = getResources().getColor(R.color.lime);
         bigAreaColor = getResources().getColor(R.color.red_area);
         smallAreaColor = getResources().getColor(R.color.green_area);
+        systemDefinedPoint = null;
     }
 
     @Override
@@ -734,8 +735,9 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
                     mIsColorSelected = false;
                     obstacleAvoidanceDegrees = compassBearingDegrees;
 
-                    Point systemDefinedPoint = Utilities.calculateObstacleAvoidingPoint(obstacleAvoidanceDegrees, obstacleCompassDegrees, distanceToObstacle, robotLocation, Preferences.loadPrefsFloat("DISTANCE_ERROR_RANGE", 3, getApplicationContext()));
-                    ////  route.a
+                    systemDefinedPoint = Utilities.calculateObstacleAvoidingPoint(obstacleAvoidanceDegrees, obstacleCompassDegrees, distanceToObstacle, robotLocation, Preferences.loadPrefsFloat("DISTANCE_ERROR_RANGE", 3, getApplicationContext()), getApplicationContext());
+                    route.addPointPosition(route.getNextPointPosition(), systemDefinedPoint);
+                    mode = "PATH";
                     /// ADD TO ROUTE
 
                 }

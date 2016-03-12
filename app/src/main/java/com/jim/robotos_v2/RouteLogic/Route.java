@@ -40,8 +40,22 @@ public class Route {
                 return route.get(i);
             }
         }
-        Log.e("ROUTE","NO NEXT POINT");
+        Log.e("ROUTE", "NO NEXT POINT");
         return null;
+    }
+
+    public int getNextPointPosition() {
+        for (int i = 0; i < route.size(); i++) {
+            if (!route.get(i).isVisited()) {
+                //         Log.d("ROUTE","NEXT POINT --> "+route.get(i));
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public void addPointPosition(int position, Point newPoint) {
+        route.add(position, newPoint);
     }
 
     public void setCurrentPointAsVisited(){

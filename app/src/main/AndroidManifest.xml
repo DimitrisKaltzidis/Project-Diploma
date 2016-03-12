@@ -61,8 +61,7 @@
         <activity
             android:name=".MainMenu"
             android:configChanges="orientation"
-            android:label="@string/activity_main_menu_label"
-            android:screenOrientation="portrait" />
+            android:label="@string/activity_main_menu_label" />
         <activity
             android:name=".FieldNavigation"
             android:configChanges="orientation"
@@ -86,10 +85,11 @@
             android:configChanges="orientation"
             android:label="@string/activity_manual_override_label"
             android:screenOrientation="landscape" />
-        <activity android:name=".VoiceOverride"
+        <activity
+            android:name=".VoiceOverride"
             android:configChanges="orientation"
             android:label="@string/activity_voice_override_label"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".ColorDetection"
             android:configChanges="orientation"

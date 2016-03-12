@@ -31,25 +31,31 @@ public class MapUtilities {
 
         PolylineOptions options = new PolylineOptions().width(8).color(resources.getColor(R.color.colorPrimary)).geodesic(true);
 
-        for (Point point: route.getRoute()) {
+        for (Point point : route.getRoute()) {
             options.add(point.getPosition());
-            placeMarkerOnMapLatLng(mMap,point.getPosition(),point.getName(),point.isVisited(),resources);
+            placeMarkerOnMapLatLng(mMap, point.getPosition(), point.getName(), point.isVisited(), point.isSystemDefined(), resources);
         }
 
         mMap.addPolyline(options);
     }
 
-    public static void placeMarkerOnMapLatLng(GoogleMap mMap, LatLng location, String markerInfo, boolean visited,Resources res) {
+    public static void placeMarkerOnMapLatLng(GoogleMap mMap, LatLng location, String markerInfo, boolean visited, boolean systemDefined, Resources res) {
         if (visited) {
+            if (systemDefined)
+                mMap.addMarker(new MarkerOptions().position(location).title(markerInfo).flat(false).icon(BitmapDescriptorFactory.fromResource(R.drawable.system_marker_blue))).showInfoWindow();
+            else
             mMap.addMarker(new MarkerOptions().position(location).title(markerInfo).flat(false).icon(BitmapDescriptorFactory.fromResource(R.drawable.grey_marker))).showInfoWindow();
         } else {
+            if (systemDefined)
+                mMap.addMarker(new MarkerOptions().position(location).title(markerInfo).flat(false).icon(BitmapDescriptorFactory.fromResource(R.drawable.system_marker_green))).showInfoWindow();
+            else
             mMap.addMarker(new MarkerOptions().position(location).title(markerInfo).flat(false).icon(BitmapDescriptorFactory.fromResource(R.drawable.green_marker))).showInfoWindow();
         }
-        animateCameraLatLng(mMap,location,res);
+        animateCameraLatLng(mMap, location, res);
     }
 
     public static void animateCameraLatLng(GoogleMap mMap, LatLng location, Resources resources) {
-       CameraPosition cameraPosition = new CameraPosition.Builder()
+        CameraPosition cameraPosition = new CameraPosition.Builder()
                 .target(location).zoom(resources.getInteger(R.integer.zoom_level)).tilt(0).bearing(0).build();
         mMap.animateCamera(CameraUpdateFactory
                 .newCameraPosition(cameraPosition));
@@ -67,10 +73,10 @@ public class MapUtilities {
         marker = mMap.addMarker(m);
         marker.showInfoWindow();
         if (animateTheCamera)
-            animateCameraLatLng(mMap,location,res);
+            animateCameraLatLng(mMap, location, res);
 
-        Log.d("ROBOT_LOCATION", "Latitude: " +location.latitude+" Longitude: "+location.longitude);
-       // Toast.makeText(context,"Latitude: " +location.latitude+" Longitude: "+location.longitude,Toast.LENGTH_LONG).show();
+        Log.d("ROBOT_LOCATION", "Latitude: " + location.latitude + " Longitude: " + location.longitude);
+        // Toast.makeText(context,"Latitude: " +location.latitude+" Longitude: "+location.longitude,Toast.LENGTH_LONG).show();
         return marker;
 
     }

@@ -600,7 +600,7 @@ public class Utilities {
         float hypotenuse = (float) Math.sqrt((double) Math.pow(distanceToObstacle, 2) + Math.pow(op, 2));
 
         //Calculate avoiding point coordinates based on angle (might be proven faulty)
-        LatLng avoidingPointLatLng = extrapolate(robotLocation, (double) obstacleAvoidanceDegrees+Preferences.loadPrefsFloat("OBSTACLE_AVOIDING_BEARING_ERROR_RANGE_DEGREES",3f,context), (double) hypotenuse + errorRange);
+        LatLng avoidingPointLatLng = extrapolate(robotLocation, (double) obstacleAvoidanceDegrees + Preferences.loadPrefsFloat("OBSTACLE_AVOIDING_BEARING_ERROR_RANGE_DEGREES", 3f, context), (double) (hypotenuse / 100) + errorRange);
 
         return new Point(avoidingPointLatLng, "Obstacle avoiding point", true);
     }

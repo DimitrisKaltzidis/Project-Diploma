@@ -651,8 +651,8 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
         //Log.d("SCAN", "PLATOS - IPSOS: " + mRgba.width() + " " + mRgba.height());
         if (mIsColorSelected) {
             mDetector.process(mRgba);
-            List<MatOfPoint> contours = mDetector.getContours();
-
+            final List<MatOfPoint> contours = mDetector.getContours();
+            Log.e("IF", "<" + contours.isEmpty() + ">");
             try {
                 if (!contours.isEmpty()) {
                     temp = Imgproc.boundingRect(contours.get(0));
@@ -729,15 +729,30 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
 
                     // Core.line(mRgba, new org.opencv.core.Point(mRgba.width() / 2, 0), new org.opencv.core.Point(mRgba.width() / 2, mRgba.height()), new Scalar(255, 0, 0, 255), 5);
                 } else {
-                    Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "STOP", previousCommand);
-                    previousCommand = "STOP";
-                    Toast.makeText(getApplicationContext(), "Took place", Toast.LENGTH_SHORT).show();
-                    mIsColorSelected = false;
-                    obstacleAvoidanceDegrees = compassBearingDegrees;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            //  Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "STOP", previousCommand);
+                            //  previousCommand = "STOP";
+                            // Toast.makeText(getApplicationContext(), "Took place", Toast.LENGTH_SHORT).show();
+                            Log.e("ELSE", "<" + contours.isEmpty() + ">>>>1>");
+                            mIsColorSelected = false;
+                            obstacleAvoidanceDegrees = compassBearingDegrees;
+                            for (Point point : route.getRoute()) {
+                                Log.d("Route", "BEFORE " + point.getName() + " " + "Position-1: " + point.getName() + " System defined " + point.isSystemDefined() + " Visited: " + point.isVisited());
 
-                    systemDefinedPoint = Utilities.calculateObstacleAvoidingPoint(obstacleAvoidanceDegrees, obstacleCompassDegrees, distanceToObstacle, robotLocation, Preferences.loadPrefsFloat("DISTANCE_ERROR_RANGE", 3, getApplicationContext()), getApplicationContext());
-                    route.addPointPosition(route.getNextPointPosition(), systemDefinedPoint);
-                    mode = "PATH";
+                            }
+                            systemDefinedPoint = Utilities.calculateObstacleAvoidingPoint(obstacleAvoidanceDegrees, obstacleCompassDegrees, distanceToObstacle, robotLocation, Preferences.loadPrefsFloat("OBSTACLE_AVOIDING_MAP_ERROR_METERS", 1f, getApplicationContext()), getApplicationContext());
+                            route.addPointPosition(route.getNextPointPosition(), systemDefinedPoint);
+                            for (Point point : route.getRoute()) {
+                                Log.d("Route", "AFTER" + point.getName() + " " + "Position-1: " + point.getName() + " System defined " + point.isSystemDefined() + " Visited: " + point.isVisited());
+
+                            }
+                            MapUtilities.drawPathOnMap(mMap, route, getResources());
+                            mode = "PATH";
+                        }
+                    });
+
                     /// ADD TO ROUTE
 
                 }

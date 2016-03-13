@@ -13,6 +13,9 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
     <!-- For openCv -->
     <uses-permission android:name="android.permission.CAMERA" />
 
@@ -50,8 +53,7 @@
 
         <activity
             android:name=".Splash"
-            android:configChanges="orientation"
-            android:screenOrientation="portrait">
+            android:configChanges="orientation">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -104,8 +106,7 @@
         <activity
             android:name=".Settings"
             android:configChanges="orientation"
-            android:label="@string/activity_settings_label"
-            android:screenOrientation="portrait" />
+            android:label="@string/activity_settings_label" />
         <activity
             android:name=".ScenarioMode"
             android:configChanges="orientation"

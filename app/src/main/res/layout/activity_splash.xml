@@ -1,45 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:weightSum="3"
     tools:context="com.jim.robotos_v2.Splash">
 
+    <TextView
+        android:id="@+id/tvSplashName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="@string/robot_os"
+        android:textAppearance="?android:attr/textAppearanceLargeInverse"
+        android:textSize="30sp"
+        android:textStyle="bold" />
+
     <ImageView
+        android:id="@+id/ivSplashLogo"
         android:layout_width="130dp"
         android:layout_height="130dp"
-        android:id="@+id/ivSplashLogo"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"
+        android:layout_weight="1"
         android:contentDescription="@string/logoImage"
-        android:src="@drawable/logo_small"/>
+        android:gravity="center"
+        android:src="@drawable/logo_small" />
+
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLargeInverse"
-        android:text="@string/robot_os"
-        android:textStyle="bold"
-        android:textSize="30sp"
-        android:id="@+id/tvSplashName"
-        android:layout_marginTop="56dp"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMediumInverse"
-        android:text="@string/version_2_0"
         android:id="@+id/tvSplashVersionNumber"
-        android:textStyle="bold"
-        android:layout_marginBottom="45dp"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="@string/version_2_0"
+        android:textAppearance="?android:attr/textAppearanceMediumInverse"
+        android:textStyle="bold" />
 
+</LinearLayout>
 
-</RelativeLayout>

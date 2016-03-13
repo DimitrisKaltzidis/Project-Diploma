@@ -32,4 +32,6 @@
     <string name="map_error_range">Map error range (meters):</string>
     <string name="saved">Changes saved</string>
     <string name="please_fill_correctly">Please fill the fields correctly</string>
+    <string name="avoid_angle_range">Obstacle avoid angle range (degrees):</string>
+    <string name="avoid_point_map_error">Error range for avoid point (meters):</string>
 </resources>

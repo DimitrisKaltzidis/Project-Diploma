@@ -90,8 +90,8 @@
         <activity
             android:name=".VoiceOverride"
             android:configChanges="orientation"
-            android:label="@string/activity_voice_override_label"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="landscape"
+            android:label="@string/activity_voice_override_label" />
         <activity
             android:name=".ColorDetection"
             android:configChanges="orientation"

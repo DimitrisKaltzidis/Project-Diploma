@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/coordinatorLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/coordinatorLayout"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
@@ -61,23 +61,37 @@
         </TableRow>
 
 
+        <ProgressBar
+            android:id="@+id/progressBarVoice"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:indeterminate="true"
+            android:indeterminateTint="@color/colorPrimary"
+            android:indeterminateTintMode="src_atop"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp" />
+
         <TextView
-            android:id="@+id/caption_text"
+            android:id="@+id/user_help"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
+            android:layout_marginTop="25dp"
+            android:textStyle="bold"
+            android:gravity="center"
             android:text="Medium Text"
             android:textAppearance="?android:attr/textAppearanceMediumInverse" />
 
         <TextView
-            android:id="@+id/result_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignEnd="@+id/caption_text"
-            android:layout_alignParentBottom="true"
-            android:layout_marginBottom="72dp"
-            android:text="Medium Text"
-            android:textAppearance="?android:attr/textAppearanceMediumInverse" />
+            android:layout_marginTop="30dp"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimary"
+            android:textAppearance="?android:attr/textAppearanceMediumInverse"
+            android:text="----"
+            android:id="@+id/tvResults" />
+
     </LinearLayout>
 </android.support.design.widget.CoordinatorLayout>

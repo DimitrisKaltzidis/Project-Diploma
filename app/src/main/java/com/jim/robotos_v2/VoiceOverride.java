@@ -1,7 +1,6 @@
 package com.jim.robotos_v2;
 
 import android.bluetooth.BluetoothAdapter;
-import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -13,10 +12,13 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.jim.robotos_v2.Utilities.Bluetooth;
+import com.jim.robotos_v2.Utilities.CustomRecognitionListener;
 import com.jim.robotos_v2.Utilities.Utilities;
 
 import java.io.File;
@@ -27,11 +29,10 @@ import java.util.Locale;
 import edu.cmu.pocketsphinx.Assets;
 import edu.cmu.pocketsphinx.Hypothesis;
 import edu.cmu.pocketsphinx.RecognitionListener;
-import edu.cmu.pocketsphinx.SpeechRecognizer;
 
 import static edu.cmu.pocketsphinx.SpeechRecognizerSetup.defaultSetup;
 
-public class VoiceOverride extends AppCompatActivity implements RecognitionListener {
+public class VoiceOverride extends AppCompatActivity implements RecognitionListener, CustomRecognitionListener {
 
     private ImageView ivBluetooth, ivDirection;
     private TextView tvDistance;
@@ -40,27 +41,35 @@ public class VoiceOverride extends AppCompatActivity implements RecognitionListe
     private int distanceToObstacle = 2000;
     private TextToSpeech textToSpeech;
     private CoordinatorLayout coordinatorLayout;
-    private final int REQ_CODE_SPEECH_INPUT = 100;
+    private Intent recognizerIntent;
+    private android.speech.SpeechRecognizer speech = null;
+    private ProgressBar progressBar;
+    private String command = "STOP";
 
-
-    /* Named searches allow to quickly reconfigure the decoder */
     private static final String KWS_SEARCH = "wakeup";
-
-    /* Keyword we are looking for to activate menu */
     private static final String KEYPHRASE = "robot move";
-    //private static final String MENU_SEARCH = "menu";
 
-    private SpeechRecognizer recognizer;
+    private edu.cmu.pocketsphinx.SpeechRecognizer recognizer;
+    private String LOG_TAG = "LOG";
+
+    private ArrayList<String> commands = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_voice_override);
 
+        commands.add("forward");
+        commands.add("backward");
+        commands.add("left");
+        commands.add("right");
+        commands.add("stop");
+
         ivBluetooth = (ImageView) findViewById(R.id.ivBluetooth);
         ivDirection = (ImageView) findViewById(R.id.ivDirection);
         tvDistance = (TextView) findViewById(R.id.tvDistance);
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+        progressBar = (ProgressBar) findViewById(R.id.progressBarVoice);
 
         bt = new Bluetooth(this, mHandler);
         connectService();
@@ -74,7 +83,9 @@ public class VoiceOverride extends AppCompatActivity implements RecognitionListe
             }
         });
 
-        textToSpeech.speak("Hello", TextToSpeech.QUEUE_FLUSH, null);
+        // textToSpeech.speak("Hello", TextToSpeech.QUEUE_FLUSH, null);
+
+        initializeSpeechRecognizer();
 
         new AsyncTask<Void, Void, Exception>() {
             @Override
@@ -92,10 +103,9 @@ public class VoiceOverride extends AppCompatActivity implements RecognitionListe
             @Override
             protected void onPostExecute(Exception result) {
                 if (result != null) {
-                    ((TextView) findViewById(R.id.caption_text))
-                            .setText("Failed to init recognizer " + result);
+
                 } else {
-                    switchSearch(KWS_SEARCH);
+                    startListeningSphinx(KWS_SEARCH);
                 }
             }
         }.execute();
@@ -103,37 +113,22 @@ public class VoiceOverride extends AppCompatActivity implements RecognitionListe
     }
 
     private void setupRecognizer(File assetsDir) {
-
         try {
-
             recognizer = defaultSetup()
                     .setAcousticModel(new File(assetsDir, "en-us-ptm"))
                     .setDictionary(new File(assetsDir, "cmudict-en-us.dict"))
-
-                            // To disable logging of raw audio comment out this call (takes a lot of space on the device)
-                    .setRawLogDir(assetsDir)
-
-                            // Threshold to tune for keyphrase to balance between false alarms and misses
-                    .setKeywordThreshold(1e-45f)
-
-                            // Use context-independent phonetic search, context-dependent is too slow for mobile
+                            // .setRawLogDir(assetsDir) // To disable logging of raw audio comment out this call (takes a lot of space on the device)
+                    .setKeywordThreshold(1e-45f)  // Threshold to tune for keyphrase to balance between false alarms and misses
                     .setBoolean("-allphone_ci", true)
-
                     .getRecognizer();
             recognizer.addListener(this);
 
             // Create keyword-activation search.
             recognizer.addKeyphraseSearch(KWS_SEARCH, KEYPHRASE);
 
-         /*   // Create grammar-based searches.
-            File menuGrammar = new File(assetsDir, "menu.gram");
-            recognizer.addGrammarSearch(MENU_SEARCH, menuGrammar);
-*/
-            // recognizer.startListening(MENU_SEARCH);
         } catch (Exception e) {
-
+            e.printStackTrace();
         }
-
     }
 
     public void connectService() {
@@ -184,6 +179,13 @@ public class VoiceOverride extends AppCompatActivity implements RecognitionListe
 
                             Log.d("READ_FROM_ARDUINO_NORM", distanceToObstacle + "");
                             tvDistance.setText(distanceToObstacle + "cm");
+                            if (distanceToObstacle < 40 && !(command.equals("STOP"))) {
+                                Utilities.setDirectionImage("STOP", ivDirection, bt);
+                                textToSpeech.speak("YOU ARE ABOUT TO HIT AN OBSTACLE STOPPING", TextToSpeech.QUEUE_FLUSH, null);
+                                ((TextView) findViewById(R.id.tvResults))
+                                        .setText("STOP");
+                                command = "STOP";
+                            }
                             //distanceToObstacle = Integer.parseInt(sbprint);
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -213,6 +215,11 @@ public class VoiceOverride extends AppCompatActivity implements RecognitionListe
         bt.stop();
         recognizer.cancel();
         //finish();
+
+        if (speech != null) {
+            speech.destroy();
+        }
+
     }
 
     @Override
@@ -234,131 +241,217 @@ public class VoiceOverride extends AppCompatActivity implements RecognitionListe
         recognizer.shutdown();
     }
 
+
     /*-------------------------------------------------------------------------------------------------------------------------------------------------*/
     @Override
     public void onBeginningOfSpeech() {
-        Snackbar snackbar = Snackbar
-                .make(coordinatorLayout, "onBeginningOfSpeech", Snackbar.LENGTH_LONG);
+        showSnackbar("Begin of speech Sphinx", Snackbar.LENGTH_LONG);
 
-        snackbar.show();
+        progressBar.setIndeterminate(false);
+        progressBar.setMax(10);
     }
+
 
     @Override
     public void onEndOfSpeech() {
-        Snackbar snackbar = Snackbar
-                .make(coordinatorLayout, "onEndOfSpeech", Snackbar.LENGTH_LONG);
 
-        snackbar.show();
+        showSnackbar("End of speech Sphinx", Snackbar.LENGTH_LONG);
 
-        if (!recognizer.getSearchName().equals(KWS_SEARCH))
-            switchSearch(KWS_SEARCH);
-        //recognizer.stop();
+        try {
+            if (!recognizer.getSearchName().equals(KWS_SEARCH))
+                startListeningSphinx(KWS_SEARCH);
+        } catch (Exception r) {
+            r.printStackTrace();
+        }
+        progressBar.setIndeterminate(true);
     }
 
+
     @Override
-    public void onPartialResult(Hypothesis hypothesis) {
+    public void onPartialResult(Hypothesis hypothesis) { /// change recogniser Sphinx -> Android
 
         if (hypothesis == null)
             return;
 
         String text = hypothesis.getHypstr();
-        if (text.equals(KEYPHRASE))
-            promptSpeechInput();
-        //  switchSearch(MENU_SEARCH);
+        if (text.equals(KEYPHRASE)) {
+            progressBar.setVisibility(View.VISIBLE);
+            progressBar.setIndeterminate(true);
+            recognizer.cancel(); //cancel Sphinx speech recognizer
+            speech.startListening(recognizerIntent); // start android speech recognizer
+            ((TextView) findViewById(R.id.user_help)).setText(R.string.speech_prompt);
+        }
 
-        Snackbar snackbar = Snackbar
-                .make(coordinatorLayout, "onPartialResult text: " + text, Snackbar.LENGTH_LONG);
-
-        snackbar.show();
     }
 
     @Override
     public void onResult(Hypothesis hypothesis) {
         if (hypothesis != null) {
-            Snackbar snackbar = Snackbar
-                    .make(coordinatorLayout, hypothesis.getHypstr(), Snackbar.LENGTH_LONG);
-
-            snackbar.show();
-            Log.d(TAG, "onResult: works" + hypothesis.getHypstr());
+            showSnackbar("Sphinx onResult: " + hypothesis.getHypstr(), Snackbar.LENGTH_LONG);
         }
     }
 
     @Override
     public void onError(Exception e) {
-        Snackbar snackbar = Snackbar
-                .make(coordinatorLayout, "onError", Snackbar.LENGTH_INDEFINITE);
-
-        snackbar.show();
+        showSnackbar("Sphinx error", Snackbar.LENGTH_LONG);
     }
 
     @Override
     public void onTimeout() {
-        switchSearch(KWS_SEARCH);
+        startListeningSphinx(KWS_SEARCH);
     }
 
 
     /*---------------------------------------------------------------------------------------------------------------------------------------*/
 
-    private void switchSearch(String searchName) {
+    private void startListeningSphinx(String searchName) {
         recognizer.stop();
 
         // If we are not spotting, start listening with timeout (10000 ms or 10 seconds).
         if (searchName.equals(KWS_SEARCH))
             recognizer.startListening(searchName);
         else
+            // recognizer.startListening(searchName);
             recognizer.startListening(searchName, 10000);
 
         //String caption = getResources().getString(searchName);
-        ((TextView) findViewById(R.id.caption_text)).setText(searchName);
+        ((TextView) findViewById(R.id.user_help)).setText(R.string.robot_move);
     }
 
-    /**
-     * Showing google speech input dialog
-     */
-    private void promptSpeechInput() {
-        recognizer.cancel();
-
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
-                getString(R.string.speech_prompt));
-        try {
-            startActivityForResult(intent, REQ_CODE_SPEECH_INPUT);
-        } catch (ActivityNotFoundException a) {
-            Snackbar snackbar = Snackbar
-                    .make(coordinatorLayout, "Speech is not supported", Snackbar.LENGTH_INDEFINITE);
-
-            snackbar.show();
-        }
+    private void initializeSpeechRecognizer() {
+        speech = android.speech.SpeechRecognizer.createSpeechRecognizer(this);
+        speech.setRecognitionListener(VoiceOverride.this);
+        recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE,
+                "en-US");
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,
+                this.getPackageName());
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
     }
 
-    /**
-     * Receiving speech input
-     */
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    public void onReadyForSpeech(Bundle params) {
+        Log.i(LOG_TAG, "onReadyForSpeech Android");
+    }
 
-        switch (requestCode) {
-            case REQ_CODE_SPEECH_INPUT: {
-                if (resultCode == RESULT_OK && null != data) {
+    @Override
+    public void onRmsChanged(float rmsdB) {
+        Log.i(LOG_TAG, "onRmsChanged Android: " + rmsdB);
+        progressBar.setProgress((int) rmsdB);
+    }
 
-                    ArrayList<String> result = data
-                            .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                    //txtSpeechInput.setText(result.get(0));
-                    Snackbar snackbar = Snackbar
-                            .make(coordinatorLayout, "You said: " + result.get(0), Snackbar.LENGTH_INDEFINITE);
+    @Override
+    public void onBufferReceived(byte[] buffer) {
+        Log.i(LOG_TAG, "onBufferReceived: Android" + buffer);
+    }
 
-                    snackbar.show();
+    @Override
+    public void onError(int error) {/// Change Listener because something went wrong Android -> Sphinx
+        String errorMessage = getErrorText(error);
+        Log.d(LOG_TAG, "FAILED " + errorMessage);
+        speech.cancel();
+        startListeningSphinx(KWS_SEARCH);
+        showSnackbar(errorMessage, Snackbar.LENGTH_LONG);
+    }
 
-                    switchSearch(KWS_SEARCH);
+    @Override
+    public void onResults(Bundle results) {
+        Log.i(LOG_TAG, "onResults");
+        ArrayList<String> matches = results
+                .getStringArrayList(android.speech.SpeechRecognizer.RESULTS_RECOGNITION);
+        String text = "";
+        for (String result : matches)
+            text += result + "\n";
 
-                }
+        decideDirection(matches);
+
+        speech.cancel();
+        startListeningSphinx(KWS_SEARCH);
+
+    }
+
+    @Override
+    public void onPartialResults(Bundle partialResults) {
+        Log.i(LOG_TAG, "onPartialResults");
+    }
+
+    @Override
+    public void onEvent(int eventType, Bundle params) {
+        Log.i(LOG_TAG, "onEvent");
+    }
+
+    public static String getErrorText(int errorCode) {
+        String message;
+        switch (errorCode) {
+            case android.speech.SpeechRecognizer.ERROR_AUDIO:
+                message = "Audio recording error";
+                break;
+            case android.speech.SpeechRecognizer.ERROR_CLIENT:
+                message = "Client side error";
+                break;
+            case android.speech.SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
+                message = "Insufficient permissions";
+                break;
+            case android.speech.SpeechRecognizer.ERROR_NETWORK:
+                message = "Network error";
+                break;
+            case android.speech.SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
+                message = "Network timeout";
+                break;
+            case android.speech.SpeechRecognizer.ERROR_NO_MATCH:
+                message = "No match";
+                break;
+            case android.speech.SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
+                message = "RecognitionService busy";
+                break;
+            case android.speech.SpeechRecognizer.ERROR_SERVER:
+                message = "error from server";
+                break;
+            case android.speech.SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
+                message = "No speech input";
+                break;
+            default:
+                message = "Didn't understand, please try again.";
+                break;
+        }
+        return message;
+    }
+
+    private void showSnackbar(String text, int duration) {
+        Snackbar snackbar = Snackbar
+                .make(coordinatorLayout, text, duration);
+
+        snackbar.show();
+    }
+
+
+    private void decideDirection(ArrayList<String> matches) {
+        int position = -1;
+
+        for (String phrase : matches) {
+
+            position = commands.indexOf(phrase.toLowerCase());
+            if (position != -1) {
                 break;
             }
-
         }
+
+        if (position != -1) {
+            Utilities.setDirectionImage(commands.get(position).toUpperCase(), ivDirection, bt);
+            textToSpeech.speak("EXECUTING COMMAND " + commands.get(position).toUpperCase(), TextToSpeech.QUEUE_FLUSH, null);
+            ((TextView) findViewById(R.id.tvResults))
+                    .setText(commands.get(position).toUpperCase());
+            command = commands.get(position).toUpperCase();
+        } else {
+            Utilities.setDirectionImage("STOP", ivDirection, bt);
+            textToSpeech.speak("NO COMMAND DETECTED STOPPING", TextToSpeech.QUEUE_FLUSH, null);
+            ((TextView) findViewById(R.id.tvResults))
+                    .setText("STOP");
+            command = "STOP";
+        }
+
+
     }
 }

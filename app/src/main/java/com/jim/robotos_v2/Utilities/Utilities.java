@@ -119,7 +119,7 @@ public class Utilities {
 
             float distance = robotLocation.distanceTo(route.getNextPoint().getPositionAsLocationobject());
 
-            //tvDistance.setText((int) distance + "m");
+            tvDistance.setText((int) distance + "m");
 
             float distanceErrorRange = Preferences.loadPrefsFloat("DISTANCE_ERROR_RANGE", 3, context);
 
@@ -477,6 +477,7 @@ public class Utilities {
         return new Scalar(pointMatHsv.get(0, 0));
     }
 
+
     /**
      * The method that gives commands to the robot while the app is in Color Detection Mode
      *
@@ -489,42 +490,48 @@ public class Utilities {
      * @param bt               bluetooth object to handle the communication
      * @param context          the application context to access preferences
      */
-    public static void giveDirectionColorDetection(org.opencv.core.Point center, int distanceToObject, double bottomLineHeight, double leftLineWidth, double rightLineWidth, ImageView ivDirection, Bluetooth bt, Context context) {
+    public static String giveDirectionColorDetectionVersion2(org.opencv.core.Point center, int distanceToObject, double bottomLineHeight, double leftLineWidth, double rightLineWidth, ImageView ivDirection, Bluetooth bt, Context context, String previousCommand) {
+
+        String command = "STOP";
         try {
-            String command;
+
 
             if (distanceToObject < Preferences.loadPrefsInt("DISTANCE_TO_STOP_FROM_OBSTACLE_CM", 50, context)) {
+                command = "STOP";
+            } else {
                 if (center.y > bottomLineHeight) {
                     command = "STOP";
                 } else {
-                    if (center.x < leftLineWidth) {
-                        command = "LEFT";
-                    } else if (center.x > rightLineWidth) {
+                    if (center.x >= leftLineWidth && center.x <= rightLineWidth) {
+                        command = "FORWARD";
+                    } else if (center.x < leftLineWidth) {
                         command = "RIGHT";
-                    } else if ((center.x >= leftLineWidth) && (center.x <= rightLineWidth)) {
-                        if (distanceToObject < Preferences.loadPrefsInt("DISTANCE_TO_STOP_FROM_OBSTACLE_CM", 50, context)) {
-                            command = "STOP";
-                        } else {
-                            command = "FORWARD";
-                        }
                     } else {
-                        command = "RIGHT";
+                        command = "LEFT";
                     }
                 }
-            } else {
-                command = "STOP";
             }
+
+            if (!command.equals(previousCommand))
             Utilities.setDirectionImage(command, ivDirection, bt);
 
         } catch (Exception e) {
+            e.printStackTrace();
             Utilities.setDirectionImage("STOP", ivDirection, bt);
+            command = "STOP";
         }
+
+        return command;
+
+
     }
 
     static int counter = 0;
 
 
-    /** Eliminates the spikes (glitches) of the robot's proximity sensor based on min difference value(kai kala)
+    /**
+     * Eliminates the spikes (glitches) of the robot's proximity sensor based on min difference value(kai kala)
+     *
      * @param currentSensorValue  the current sensor reading
      * @param previousSensorValue the previous sensor reading
      * @return the value with no spikes
@@ -550,7 +557,9 @@ public class Utilities {
 
     }
 
-    /**Calculates the Euclid distance between two points in Cartesian like surface
+    /**
+     * Calculates the Euclid distance between two points in Cartesian like surface
+     *
      * @param pointA the first point
      * @param pointB the second point
      * @return the distance as float
@@ -560,10 +569,12 @@ public class Utilities {
     }
 
 
-    /**Send a command to the robot if the current command is different than the previous; to avoid lag on communication
-     * @param ivDirection ImageView to set command on the UI
-     * @param bt bluetooth object to handle the communication
-     * @param command the command for the robot
+    /**
+     * Send a command to the robot if the current command is different than the previous; to avoid lag on communication
+     *
+     * @param ivDirection     ImageView to set command on the UI
+     * @param bt              bluetooth object to handle the communication
+     * @param command         the command for the robot
      * @param previousCommand the previous command for the robot
      */
     public static void giveDirectionObstacleAvoidance(ImageView ivDirection, Bluetooth bt, String command, String previousCommand) {
@@ -582,7 +593,7 @@ public class Utilities {
      * @param context                  the application context to access preferences
      * @return the Point towards to i must navigate to avoid the obstacle
      */
-    public static Point calculateObstacleAvoidingPoint(float obstacleAvoidanceDegrees, float obstacleCompassDegrees, int distanceToObstacle, Location robotLocation, float errorRange,Context context) {
+    public static Point calculateObstacleAvoidingPoint(float obstacleAvoidanceDegrees, float obstacleCompassDegrees, int distanceToObstacle, Location robotLocation, float errorRange, Context context) {
 
         //Obstacle-Robot-Point angle
         float orp = 180 - abs(abs(obstacleCompassDegrees - obstacleAvoidanceDegrees) - 180);
@@ -605,10 +616,12 @@ public class Utilities {
         return new Point(avoidingPointLatLng, "Obstacle avoiding point", true);
     }
 
-    /**Calculates the coordinates of a new point based on given Point Coordinates the distance between them in meters and the angle the user stares
-     * @param startingLatLngPoint  the starting point
-     * @param course the angle representing the course we want to calculate the new point to
-     * @param distance the meters towards that course
+    /**
+     * Calculates the coordinates of a new point based on given Point Coordinates the distance between them in meters and the angle the user stares
+     *
+     * @param startingLatLngPoint the starting point
+     * @param course              the angle representing the course we want to calculate the new point to
+     * @param distance            the meters towards that course
      * @return the new Point coordinates as LatLng object
      */
     public static LatLng extrapolate(Location startingLatLngPoint, final double course,

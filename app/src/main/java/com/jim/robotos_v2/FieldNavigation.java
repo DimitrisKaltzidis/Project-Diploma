@@ -339,7 +339,7 @@ public class FieldNavigation extends AppCompatActivity implements OnMapReadyCall
                         String sbprint = sb.substring(0, endOfLineIndex);               // extract string
                         sb.delete(0, sb.length());                                      // and clear
                         Log.d("READ_FROM_ARDUINO", sbprint);
-                        tvDistance.setText(sbprint + "cm");
+                        // tvDistance.setText(sbprint + "cm");
                     }
                     break;
                 case Bluetooth.MESSAGE_DEVICE_NAME:

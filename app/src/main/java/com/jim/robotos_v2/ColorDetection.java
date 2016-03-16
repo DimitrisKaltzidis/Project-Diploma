@@ -58,6 +58,7 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
     private ImageView ivDirection, ivBluetooth, ivDetectionColor;
     private static TextView tvDistance;
     private Rect temp;
+    private String command = "STOP";
     private org.opencv.core.Point rectTopLeft;
     private static int distanceToObject = 200000;
 
@@ -110,7 +111,7 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
                             public void run() {
                                 Log.d(TAG, "run: 2" + Thread.interrupted());
                                 if (mIsColorSelected)
-                                    Utilities.giveDirectionColorDetection(center, distanceToObject, bottomLineHeight, leftLineWidth, rightLineWidth, ivDirection, bt, getApplicationContext());
+                                    command = Utilities.giveDirectionColorDetectionVersion2(center, distanceToObject, bottomLineHeight, leftLineWidth, rightLineWidth, ivDirection, bt, getApplicationContext(), command);
                             }
                         });
                     } catch (InterruptedException e) {
@@ -166,11 +167,6 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
                 if (!contours.isEmpty()) {
                     temp = Imgproc.boundingRect(contours.get(0));
                     Core.rectangle(mRgba, temp.tl(), temp.br(), new Scalar(238, 233, 60), 3);
-
-                   /* for (int i = 1; i < contours.size(); i++) {
-                        temp = Imgproc.boundingRect(contours.get(i));
-                        Core.rectangle(mRgba, temp.tl(), temp.br(), new Scalar(238, 233, 60), 3);
-                    }*/
 
                     rectTopLeft = temp.tl();
 

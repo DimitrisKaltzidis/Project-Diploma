@@ -13,6 +13,27 @@ import java.util.List;
  */
 public class Preferences {
 
+    /*AVAILABLE PREFERENCES
+    *
+    * //obstacle avoidance
+    * OBSTACLE_AVOIDING_BEARING_ERROR_RANGE_DEGREES /// Moires pou prostithontai stin gwnia apofigis empodiou se periptwsi lathous
+    * OBSTACLE_AVOIDING_MAP_ERROR_METERS /// metra pou prostithontai stin apostasi apofigis tou empodiou logo pithanis asimfwnias xarti pragmatikotitas
+    * OBSTACLE_DETECTION_RANGE /// sta posa metra thewrw oti exw anixneusei ena empodio
+    *
+    * BEARING_RANGE /// Moires +/- tis gwnias stin opoia vriskete to epomeno simeio stin diadromi
+    * DISTANCE_ERROR_RANGE /// Metra apoklisis tou xarti me tin pragmatikotita gia na theorisw oti exw episkeftei ena shmeio
+    *
+    * COMMUNICATION_LOOP_REPEAT_TIME /// xronos gia to pote to Thread pou apofasizei tin poreia prepei na ekteleite
+    * BOTTOM_LINE_VALUE /// to ipsos tis grammis sto Color detection
+    * DISTANCE_TO_STOP_FROM_OBSTACLE_CM /// Color detection activity distance to stop if an a object is in front of the sensor
+    *
+    * */
+
+
+
+
+
+
     @SuppressLint("LongLogTag")
     static public void savePrefsString(String toBeSaved, String valueToBeSaved,
                                        Context context) {

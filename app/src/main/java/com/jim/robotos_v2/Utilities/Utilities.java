@@ -119,7 +119,7 @@ public class Utilities {
 
             float distance = robotLocation.distanceTo(route.getNextPoint().getPositionAsLocationobject());
 
-            tvDistance.setText((int) distance + "m");
+            // tvDistance.setText((int) distance + "m");
 
             float distanceErrorRange = Preferences.loadPrefsFloat("DISTANCE_ERROR_RANGE", 3, context);
 
@@ -157,7 +157,7 @@ public class Utilities {
             }
         } else {
             if (!tts.isSpeaking()) {
-                tts.speak("CURRENT ROUTE COMPLETED", TextToSpeech.QUEUE_FLUSH, null);
+                tts.speak("ROUTE COMPLETED", TextToSpeech.QUEUE_FLUSH, null);
             }
             return "FINISH";
 
@@ -611,7 +611,7 @@ public class Utilities {
         float hypotenuse = (float) Math.sqrt((double) Math.pow(distanceToObstacle, 2) + Math.pow(op, 2));
 
         //Calculate avoiding point coordinates based on angle (might be proven faulty)
-        LatLng avoidingPointLatLng = extrapolate(robotLocation, (double) obstacleAvoidanceDegrees + Preferences.loadPrefsFloat("OBSTACLE_AVOIDING_BEARING_ERROR_RANGE_DEGREES", 3f, context), (double) (hypotenuse / 100) + errorRange);
+        LatLng avoidingPointLatLng = extrapolate(robotLocation, (double) obstacleAvoidanceDegrees /*+ Preferences.loadPrefsFloat("OBSTACLE_AVOIDING_BEARING_ERROR_RANGE_DEGREES", 3f, context)*/, (double) (hypotenuse / 100) + errorRange);
 
         return new Point(avoidingPointLatLng, "Obstacle avoiding point", true);
     }

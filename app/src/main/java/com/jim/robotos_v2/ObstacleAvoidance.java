@@ -1,6 +1,7 @@
 package com.jim.robotos_v2;
 
 import android.bluetooth.BluetoothAdapter;
+import android.content.Intent;
 import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -39,6 +40,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.jim.robotos_v2.ComputerVision.ColorBlobDetector;
+import com.jim.robotos_v2.RouteLogic.Obstacle;
 import com.jim.robotos_v2.RouteLogic.Point;
 import com.jim.robotos_v2.RouteLogic.Route;
 import com.jim.robotos_v2.Utilities.Bluetooth;
@@ -59,6 +61,7 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -92,14 +95,13 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
     private Size SPECTRUM_SIZE;
     private org.opencv.core.Point center, topLeft, topRight, bottomLeft, bottomRight, topMiddle, bottomMiddle;
     private boolean mIsColorSelected = false;
-    private double cameraViewHeight;
-    private double cameraViewWidth;
     private int contourColor, pointColor, smallAreaColor, bigAreaColor;
+    private int detectedColor[] = new int[4];
     private int areaLeft, areaRight;
     private String previousCommand = "STOP";
     private Sensor gSensor;
     private Sensor mSensor;
-
+    private ArrayList<Obstacle> detectedObstacles = new ArrayList<>();
     private String mode = "PATH";
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
@@ -166,6 +168,11 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
                     mBlobColorHsv.val[i] /= pointCount;
 
                 mBlobColorRgba = Utilities.convertScalarHsv2Rgba(mBlobColorHsv);
+
+                detectedColor[0] = (int) mBlobColorRgba.val[0];
+                detectedColor[1] = (int) mBlobColorRgba.val[1];
+                detectedColor[2] = (int) mBlobColorRgba.val[2];
+                detectedColor[3] = (int) mBlobColorRgba.val[3];
 
                 //Toast.makeText(getApplicationContext(), "Touched", Toast.LENGTH_LONG).show();
                 Log.i(TAG, "Touched rgba color: (" + mBlobColorRgba.val[0] + ", " + mBlobColorRgba.val[1] +
@@ -274,6 +281,19 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
 
                                         route.clearRoute();
 
+                                        try {
+                                            if (!detectedObstacles.isEmpty()) {
+                                                textToSpeech.speak(detectedObstacles.size() + "OBSTACLE DETECTED", TextToSpeech.QUEUE_ADD, null);
+                                                //showObstaclesAsAlist();
+                                                Intent intent = new Intent(ObstacleAvoidance.this, RouteObstaclesListView.class);
+                                                intent.putExtra("mylist", detectedObstacles);
+                                                startActivity(intent);
+                                            } else
+                                                textToSpeech.speak("NO OBSTACLES DETECTED", TextToSpeech.QUEUE_ADD, null);
+                                        } catch (Exception r) {
+                                            r.printStackTrace();
+                                            Log.d(TAG, "ERROR OPENING NEW ACTIVITY");
+                                        }
 
                                         Utilities.setDirectionImage("STOP", ivDirection, bt);
                                     }
@@ -619,8 +639,6 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
         mBlobColorRgba = new Scalar(255);
         mBlobColorHsv = new Scalar(255);
         SPECTRUM_SIZE = new Size(200, 64);
-        cameraViewHeight = (double) mOpenCvCameraView.getHeight();
-        cameraViewWidth = (double) mOpenCvCameraView.getWidth();
         center = null;
         topLeft = null;
         topRight = null;
@@ -634,6 +652,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
         smallAreaColor = getResources().getColor(R.color.green_area);
         systemDefinedPoint = null;
     }
+
 
     @Override
     public void onCameraViewStopped() {
@@ -748,6 +767,9 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
                                 Log.d("Route", "AFTER" + point.getName() + " " + "Position-1: " + point.getName() + " System defined " + point.isSystemDefined() + " Visited: " + point.isVisited());
 
                             }
+
+
+                            detectedObstacles.add(new Obstacle(Utilities.extrapolate(robotLocation, 0, distanceToObstacle), detectedColor, obstacleCompassDegrees, obstacleAvoidanceDegrees, Preferences.loadPrefsFloat("DISTANCE_ERROR_RANGE", 3, getApplicationContext())));
                             MapUtilities.drawPathOnMap(mMap, route, getResources());
                             mode = "PATH";
                         }
@@ -766,5 +788,4 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
 
         return mRgba;
     }
-
 }

@@ -73,7 +73,7 @@ public class MapUtilities {
         marker = mMap.addMarker(m);
         marker.showInfoWindow();
         if (animateTheCamera)
-            animateCameraLatLng(mMap, location, res);
+            //   animateCameraLatLng(mMap, location, res);
 
         Log.d("ROBOT_LOCATION", "Latitude: " + location.latitude + " Longitude: " + location.longitude);
         // Toast.makeText(context,"Latitude: " +location.latitude+" Longitude: "+location.longitude,Toast.LENGTH_LONG).show();

@@ -3,21 +3,162 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:opencv="http://schemas.android.com/apk/res-auto"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.jim.robotos_v2.FaceRecognition">
-
+    android:keepScreenOn="true"
+    tools:context="com.jim.robotos_v2.FieldNavigation">
+    <!--jcvFaceDetection-->
+    <fragment
+        android:id="@+id/fragmentMap"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/linearLayout"
+        android:layout_alignTop="@+id/relativeLayout"
+        android:layout_toStartOf="@+id/jcvFaceDetection" />
 
     <org.opencv.android.JavaCameraView
-
         android:id="@+id/jcvFaceDetection"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:paddingBottom="@dimen/activity_vertical_margin"
-        opencv:show_fps="true" />
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:visibility="visible"
+        android:layout_below="@+id/relativeLayout"
+        android:layout_alignParentEnd="true" />
+
+    <LinearLayout
+        android:id="@+id/relativeLayout"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_alignParentTop="true"
+        android:background="@color/black_transparent"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:weightSum="5">
+
+        <ImageView
+            android:id="@+id/ivBluetooth"
+            android:layout_width="wrap_content"
+            android:layout_height="41dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:contentDescription="@string/control_button"
+            android:scaleType="fitCenter"
+            android:src="@drawable/disconnected" />
+
+        <ImageView
+            android:id="@+id/ivDirection"
+            android:layout_width="wrap_content"
+            android:layout_height="41dp"
+            android:layout_weight="1"
+            android:contentDescription="@string/control_button"
+            android:scaleType="fitCenter"
+            android:src="@drawable/stop" />
+
+        <ImageView
+            android:id="@+id/ivBearing"
+            android:layout_width="wrap_content"
+            android:layout_height="41dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:contentDescription="@string/control_button"
+            android:scaleType="fitCenter"
+            android:src="@drawable/correct_direction" />
+
+        <ImageView
+            android:id="@+id/ivCompassNorth"
+            android:layout_width="wrap_content"
+            android:layout_height="41dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:contentDescription="@string/control_button"
+            android:scaleType="fitCenter"
+            android:src="@drawable/up" />
 
 
+        <TextView
+            android:id="@+id/tvDistance"
+            android:layout_width="wrap_content"
+            android:layout_height="41dp"
+            android:layout_weight="1"
+            android:background="@drawable/rectangle"
+            android:gravity="center"
+            android:text="@string/default_distance"
+            android:textAppearance="?android:attr/textAppearanceMediumInverse"
+            android:textColor="@color/colorAccent"
+            android:textStyle="bold"
+            tools:ignore="RelativeOverlap" />
+
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:background="@color/black"
+        android:orientation="horizontal"
+        android:weightSum="5">
+
+
+        <ImageView
+            android:id="@+id/ivShowMyLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="43dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:contentDescription="@string/control_button"
+            android:onClick="showMyLocationClicked"
+            android:scaleType="fitCenter"
+            android:src="@drawable/mylocation" />
+
+        <ImageView
+            android:id="@+id/ivClearAll"
+            android:layout_width="wrap_content"
+            android:layout_height="43dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:contentDescription="@string/control_button"
+            android:onClick="clearRouteClicked"
+            android:scaleType="fitCenter"
+            android:src="@drawable/erase" />
+
+        <ImageView
+            android:id="@+id/ivAddPointToPath"
+            android:layout_width="wrap_content"
+            android:layout_height="43dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:contentDescription="@string/control_button"
+            android:onClick="addMyLocationToRoute"
+            android:scaleType="fitCenter"
+            android:src="@drawable/save" />
+
+        <ImageView
+            android:id="@+id/ivPlayStop"
+            android:layout_width="wrap_content"
+            android:layout_height="43dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:contentDescription="@string/control_button"
+            android:onClick="playButtonClicked"
+            android:scaleType="fitCenter"
+            android:src="@drawable/play" />
+
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/face_ratio"
+        android:gravity="center_vertical"
+        android:textStyle="bold"
+        android:textColor="@color/colorAccent"
+        android:id="@+id/tvFaceRatio"
+        android:layout_below="@+id/jcvFaceDetection"
+        android:layout_alignBottom="@+id/fragmentMap"
+        android:layout_alignParentEnd="true"
+        android:layout_toEndOf="@+id/fragmentMap"
+        android:layout_marginLeft="2dp" />
 </RelativeLayout>

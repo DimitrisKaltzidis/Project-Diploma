@@ -75,7 +75,7 @@
             android:background="@drawable/rectangle"
             android:text="@string/default_distance"
             android:textAppearance="?android:attr/textAppearanceMediumInverse"
-            android:textColor="@color/colorPrimary"
+            android:textColor="@color/colorAccent"
             android:textStyle="bold"
             tools:ignore="RelativeOverlap" />
 

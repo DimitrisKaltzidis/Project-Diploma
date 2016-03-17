@@ -3,6 +3,7 @@ package com.jim.robotos_v2;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -16,6 +17,8 @@ public class Settings extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
+
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         etBearingRange = (EditText) findViewById(R.id.etBearingRange);
         etMapErrorRange = (EditText) findViewById(R.id.etMapsErrorRange);

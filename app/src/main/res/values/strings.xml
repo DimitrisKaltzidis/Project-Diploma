@@ -37,4 +37,5 @@
     <string name="speech_prompt">Listening for a direction command</string>
     <string name="robot_move">Say \'robot move\'</string>
     <string name="route_obstacles">Detected route obstacles</string>
+    <string name="face_ratio">Face ratio:</string>
 </resources>

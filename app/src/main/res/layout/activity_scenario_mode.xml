@@ -9,4 +9,100 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.jim.robotos_v2.ScenarioMode">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/tvTitle"
+        android:gravity="clip_vertical"
+        android:orientation="vertical"
+        android:weightSum="5">
+
+        <EditText
+            android:id="@+id/etRed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginTop="16dp"
+            android:hint="@string/red"
+            android:inputType="number"
+            android:textColorHint="@color/red_area" />
+
+        <EditText
+            android:id="@+id/etGreen"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginTop="4dp"
+            android:fontFamily="sans-serif"
+            android:hint="@string/green"
+            android:inputType="number"
+            android:textColorHint="@color/green" />
+
+        <EditText
+            android:id="@+id/etBlue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="4dp"
+            android:fontFamily="sans-serif"
+            android:hint="@string/blue"
+            android:inputType="number"
+            android:textColorHint="@color/blue" />
+
+        <EditText
+            android:id="@+id/etAlpha"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="4dp"
+            android:fontFamily="sans-serif"
+            android:hint="@string/alpha"
+            android:inputType="number"
+            android:textColorHint="@color/grey" />
+
+        <ImageView
+            android:id="@+id/ivDetectionColorDialog"
+            android:layout_width="41dp"
+            android:layout_height="41dp"
+            android:layout_gravity="center"
+
+            android:background="@color/colorPrimary"
+            android:contentDescription="@string/control_button"
+            android:scaleType="fitCenter"
+            android:src="@drawable/color_overlay" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="Define a color"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@color/colorAccent"
+        android:textStyle="bold"
+        android:layout_marginBottom="10dp" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabNext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:onClick="nextActivityClicked"
+        android:src="@drawable/ic_play_light" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabPreview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:onClick="previewColorClicked"
+        android:src="@drawable/paint" />
+
 </RelativeLayout>

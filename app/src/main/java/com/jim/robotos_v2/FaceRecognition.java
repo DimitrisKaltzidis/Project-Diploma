@@ -41,6 +41,7 @@ import com.jim.robotos_v2.RouteLogic.Point;
 import com.jim.robotos_v2.RouteLogic.Route;
 import com.jim.robotos_v2.Utilities.Bluetooth;
 import com.jim.robotos_v2.Utilities.MapUtilities;
+import com.jim.robotos_v2.Utilities.Preferences;
 import com.jim.robotos_v2.Utilities.Utilities;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -70,7 +71,7 @@ public class FaceRecognition extends AppCompatActivity implements CameraBridgeVi
     // Face detection
     private CameraBridgeViewBase openCvCameraView;
     private CascadeClassifier cascadeClassifier;
-    private Mat grayscaleImage;
+    private Mat grayScaleImage;
     private int absoluteFaceSize;
     private Mat mRgba;
 
@@ -91,12 +92,12 @@ public class FaceRecognition extends AppCompatActivity implements CameraBridgeVi
     private TextToSpeech textToSpeech;
     private Bluetooth bt;
     private static StringBuilder sb = new StringBuilder();
-    // private  ArrayList<Boolean> facesInASecond = new ArrayList<>();
     private List<Boolean> facesInASecond = Collections.synchronizedList(new ArrayList<Boolean>());
-
     private Sensor gSensor;
     private Sensor mSensor;
     private volatile boolean faceDetected = false;
+    final Handler handler1 = new Handler();
+    Runnable runnable;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -116,6 +117,7 @@ public class FaceRecognition extends AppCompatActivity implements CameraBridgeVi
             }
         }
     };
+    private Thread directionThread;
 
 
     private void initializeGraphicComponents() {
@@ -133,7 +135,7 @@ public class FaceRecognition extends AppCompatActivity implements CameraBridgeVi
 
 
         try {
-            // Copy the resource into a temp file so OpenCV can load it
+
             InputStream is = getResources().openRawResource(R.raw.lbpcascade_frontalface);
             File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
             File mCascadeFile = new File(cascadeDir, "lbpcascade_frontalface.xml");
@@ -156,7 +158,6 @@ public class FaceRecognition extends AppCompatActivity implements CameraBridgeVi
         }
 
 
-        // And we are ready to go
         openCvCameraView.enableView();
     }
 
@@ -208,18 +209,22 @@ public class FaceRecognition extends AppCompatActivity implements CameraBridgeVi
         openCvCameraView = (CameraBridgeViewBase) findViewById(R.id.jcvFaceDetection);
         openCvCameraView.setCvCameraViewListener(this);
 
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
+
+        /*handler1.postDelayed(*/
+        runnable = new Runnable() {
             public void run() {
                 try {
                     int listSize = facesInASecond.size();
                     int trues = Collections.frequency(facesInASecond, true);
-                    int falses = Collections.frequency(facesInASecond, false);
+                    // int falses = Collections.frequency(facesInASecond, false);
 
-                    final int faceRatio = (trues / listSize) * 100;
+
+                    final double faceRatio = ((double) trues / (double) listSize) * (double) 100;
 
                     if (faceRatio > 65) {
                         faceDetected = true;
+                        if (!textToSpeech.isSpeaking())
+                            textToSpeech.speak("Please get out the way", TextToSpeech.QUEUE_FLUSH, null);
 
                     } else {
                         faceDetected = false;
@@ -231,28 +236,80 @@ public class FaceRecognition extends AppCompatActivity implements CameraBridgeVi
                         @Override
                         public void run() {
                             if (faceDetected)
-                                Utilities.setDirectionImage("STOP", ivDirection, bt);
 
-                            tvFaceRatio.setText("Face ratio: " + faceRatio + "%");
+                                if (!command.equals("STOP")) {
+                                    Utilities.setDirectionImage("STOP", ivDirection, bt);
+                                    command = "STOP";
+                                }
+                            if (!(faceRatio == Double.NaN))
+                                tvFaceRatio.setText("Face ratio: " + String.format("%.02f", faceRatio) + "%");
+                            else
+                                tvFaceRatio.setText("Face ratio: " + 0 + "%");
                         }
                     });
 
-
+                    Log.d("RATIO", "" + faceRatio);
                     Log.d("face state", " " + faceDetected);
                     facesInASecond.clear();
                 } catch (Exception e) {
                     //  Log.e("ERROR", e.printStackTrace() + "");
                     e.printStackTrace();
                 }
-                handler.postDelayed(this, 1000); //1 second
+                handler1.postDelayed(this, 1000); //1 second
             }
-        }, 1000); //Every 1000 ms (1 second)
+        };
+
+        handler1.postDelayed(runnable, 1000);
+
+        ///lathos topothetisi den kerdizw kati apo to thread
+        directionThread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                while (!Thread.interrupted())
+                    try {
+                        Thread.sleep(Preferences.loadPrefsInt("COMMUNICATION_LOOP_REPEAT_TIME", 300, getApplicationContext()));
+                        runOnUiThread(new Runnable() // start actions in UI thread
+                        {
+
+                            @Override
+                            public void run() {
+                                if (robotLocation != null && (!route.isEmpty()) && running && textToSpeech != null) {
+
+                                    if (!faceDetected)
+                                        command = Utilities.giveDirection(compassBearingDegrees, ivDirection, ivCompass, route, robotLocation, getApplicationContext(), command, mMap, getResources(), tvDistance, textToSpeech, bt);
+
+
+                                    // END OF PATH REACHED - FINISH PROGRAM
+                                    if (command.equals("FINISH")) {
+                                        mMap.clear();
+                                        tvDistance.setText("---m");
+                                        if (running)
+                                            running = Utilities.playStopButtonHandler(route, running, ivPlayStop, getApplicationContext());
+
+                                        route.clearRoute();
+
+
+                                        Utilities.setDirectionImage("STOP", ivDirection, bt);
+                                    }
+                                }
+                            }
+                        });
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        Log.e(TAG, "run: Direction Thread interrupted");
+                        break;
+                    }
+            }
+        });
+
+        directionThread.start();
     }
 
 
     @Override
     public void onCameraViewStarted(int width, int height) {
-        grayscaleImage = new Mat(height, width, CvType.CV_8UC4);
+        grayScaleImage = new Mat(height, width, CvType.CV_8UC4);
 
 
         // The faces will be a 20% of the height of the screen
@@ -266,23 +323,22 @@ public class FaceRecognition extends AppCompatActivity implements CameraBridgeVi
 
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        // Create a grayscale image
+
 
         mRgba = inputFrame.rgba();
-        Imgproc.cvtColor(mRgba, grayscaleImage, Imgproc.COLOR_RGBA2RGB);
+        Imgproc.cvtColor(mRgba, grayScaleImage, Imgproc.COLOR_RGBA2RGB);
 
 
         MatOfRect faces = new MatOfRect();
 
 
-        // Use the classifier to detect faces
+        // detect faces
         if (cascadeClassifier != null) {
-            cascadeClassifier.detectMultiScale(grayscaleImage, faces, 1.1, 2, 2,
+            cascadeClassifier.detectMultiScale(grayScaleImage, faces, 1.1, 2, 2,
                     new Size(absoluteFaceSize, absoluteFaceSize), new Size());
         }
 
 
-        // If there are any faces found, draw a rectangle around it
         Rect[] facesArray = faces.toArray();
         for (int i = 0; i < facesArray.length; i++)
             Core.rectangle(mRgba, facesArray[i].tl(), facesArray[i].br(), new Scalar(0, 255, 0, 255), 3);
@@ -437,28 +493,17 @@ public class FaceRecognition extends AppCompatActivity implements CameraBridgeVi
     public void onSensorChanged(SensorEvent event) {
         if (robotLocation != null && (!route.isEmpty()) && running && textToSpeech != null) {
 
+            //Legacy compass sensor code
+            //compassBearingDegrees = Utilities.correctCompassBearing(Math.round(event.values[0]), robotLocation);
+
             float azimuth = 0;
 
             azimuth = Utilities.landscapeModeCompassCalibration(event);
-
             compassBearingDegrees = Utilities.correctCompassBearing(azimuth, robotLocation);
+
             currentDegree = Utilities.compassAnimationHandler(ivCompass, compassBearingDegrees, currentDegree);
             currentDegreeNorth = Utilities.compassNorthIconHandler(ivCompassNorth, compassBearingDegrees, currentDegreeNorth);
-            if (!faceDetected)
-                command = Utilities.giveDirection(compassBearingDegrees, ivDirection, ivCompass, route, robotLocation, this, command, mMap, getResources(), tvDistance, textToSpeech, bt);
-            //  Log.e("DIRECTION", command);
 
-            if (command.equals("FINISH")) {
-                mMap.clear();
-                tvDistance.setText("---m");
-                if (running)
-                    running = Utilities.playStopButtonHandler(route, running, ivPlayStop, this);
-
-                route.clearRoute();
-
-
-                Utilities.setDirectionImage("STOP", ivDirection, bt);
-            }
         }
     }
 
@@ -568,6 +613,8 @@ public class FaceRecognition extends AppCompatActivity implements CameraBridgeVi
 
     @Override
     protected void onPause() {
+
+        directionThread.interrupt();
         super.onPause();
         if (textToSpeech != null) {
             textToSpeech.stop();
@@ -578,6 +625,8 @@ public class FaceRecognition extends AppCompatActivity implements CameraBridgeVi
             stopLocationUpdates();
 
         mSensorManager.unregisterListener(this);
+
+        handler1.removeCallbacks(runnable);
 
         finish();
     }

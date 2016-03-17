@@ -160,7 +160,7 @@
         android:layout_toEndOf="@+id/fragmentMap"
         android:gravity="center_vertical"
         android:text="@string/face_ratio"
-        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="@color/colorAccent"
         android:textStyle="bold" />
 </RelativeLayout>

@@ -40,6 +40,7 @@ import com.jim.robotos_v2.RouteLogic.Point;
 import com.jim.robotos_v2.RouteLogic.Route;
 import com.jim.robotos_v2.Utilities.Bluetooth;
 import com.jim.robotos_v2.Utilities.MapUtilities;
+import com.jim.robotos_v2.Utilities.Preferences;
 import com.jim.robotos_v2.Utilities.Utilities;
 
 import java.util.Locale;
@@ -66,6 +67,7 @@ public class FieldNavigation extends AppCompatActivity implements OnMapReadyCall
 
     private Sensor gSensor;
     private Sensor mSensor;
+    private Thread directionThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,6 +112,48 @@ public class FieldNavigation extends AppCompatActivity implements OnMapReadyCall
         connectService();
 
         ivAddToRoute.setOnLongClickListener(this);
+
+        ///lathos topothetisi den kerdizw kati apo to thread
+        directionThread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                while (!Thread.interrupted())
+                    try {
+                        Thread.sleep(Preferences.loadPrefsInt("COMMUNICATION_LOOP_REPEAT_TIME", 300, getApplicationContext()));
+                        runOnUiThread(new Runnable() // start actions in UI thread
+                        {
+
+                            @Override
+                            public void run() {
+                                if (robotLocation != null && (!route.isEmpty()) && running && textToSpeech != null) {
+
+                                    command = Utilities.giveDirection(compassBearingDegrees, ivDirection, ivCompass, route, robotLocation, getApplicationContext(), command, mMap, getResources(), tvDistance, textToSpeech, bt);
+
+
+                                    // END OF PATH REACHED - FINISH PROGRAM
+                                    if (command.equals("FINISH")) {
+                                        mMap.clear();
+                                        tvDistance.setText("---m");
+                                        if (running)
+                                            running = Utilities.playStopButtonHandler(route, running, ivPlayStop, getApplicationContext());
+
+                                        route.clearRoute();
+
+
+                                        Utilities.setDirectionImage("STOP", ivDirection, bt);
+                                    }
+                                }
+                            }
+                        });
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        Log.e(TAG, "run: Direction Thread interrupted");
+                        break;
+                    }
+            }
+        });
+        directionThread.start();
     }
 
     private void initializeGraphicComponents() {
@@ -245,27 +289,17 @@ public class FieldNavigation extends AppCompatActivity implements OnMapReadyCall
     public void onSensorChanged(SensorEvent event) {
         if (robotLocation != null && (!route.isEmpty()) && running && textToSpeech != null) {
 
+            //Legacy compass sensor code
+            //compassBearingDegrees = Utilities.correctCompassBearing(Math.round(event.values[0]), robotLocation);
+
             float azimuth = 0;
 
             azimuth = Utilities.landscapeModeCompassCalibration(event);
-
             compassBearingDegrees = Utilities.correctCompassBearing(azimuth, robotLocation);
+
             currentDegree = Utilities.compassAnimationHandler(ivCompass, compassBearingDegrees, currentDegree);
             currentDegreeNorth = Utilities.compassNorthIconHandler(ivCompassNorth, compassBearingDegrees, currentDegreeNorth);
-            command = Utilities.giveDirection(compassBearingDegrees, ivDirection, ivCompass, route, robotLocation, this, command, mMap, getResources(), tvDistance, textToSpeech, bt);
-            //  Log.e("DIRECTION", command);
 
-            if (command.equals("FINISH")) {
-                mMap.clear();
-                tvDistance.setText("---m");
-                if (running)
-                    running = Utilities.playStopButtonHandler(route, running, ivPlayStop, this);
-
-                route.clearRoute();
-
-
-                Utilities.setDirectionImage("STOP", ivDirection, bt);
-            }
         }
     }
 

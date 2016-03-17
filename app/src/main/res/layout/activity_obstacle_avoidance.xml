@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:opencv="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -16,12 +17,13 @@
         android:layout_toStartOf="@+id/jcvColorDetection" />
 
     <org.opencv.android.JavaCameraView
-        android:layout_width="150dp"
-        android:visibility="visible"
-        android:layout_height="150dp"
         android:id="@+id/jcvColorDetection"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
-        android:layout_alignParentEnd="true" />
+        android:visibility="visible"
+        opencv:show_fps="true" />
 
     <LinearLayout
         android:id="@+id/relativeLayout"
@@ -73,14 +75,13 @@
             android:src="@drawable/up" />
 
 
-
         <TextView
             android:id="@+id/tvDistance"
             android:layout_width="wrap_content"
             android:layout_height="41dp"
-            android:gravity="center"
             android:layout_weight="1"
             android:background="@drawable/rectangle"
+            android:gravity="center"
             android:text="@string/default_distance"
             android:textAppearance="?android:attr/textAppearanceMediumInverse"
             android:textColor="@color/colorAccent"
@@ -89,7 +90,6 @@
 
 
     </LinearLayout>
-
 
 
     <LinearLayout
@@ -109,8 +109,8 @@
             android:layout_gravity="center"
             android:layout_weight="1"
             android:contentDescription="@string/control_button"
-            android:scaleType="fitCenter"
             android:onClick="showMyLocationClicked"
+            android:scaleType="fitCenter"
             android:src="@drawable/mylocation" />
 
         <ImageView
@@ -120,8 +120,8 @@
             android:layout_gravity="center"
             android:layout_weight="1"
             android:contentDescription="@string/control_button"
-            android:scaleType="fitCenter"
             android:onClick="clearRouteClicked"
+            android:scaleType="fitCenter"
             android:src="@drawable/erase" />
 
         <ImageView
@@ -131,8 +131,8 @@
             android:layout_gravity="center"
             android:layout_weight="1"
             android:contentDescription="@string/control_button"
-            android:scaleType="fitCenter"
             android:onClick="addMyLocationToRoute"
+            android:scaleType="fitCenter"
             android:src="@drawable/save" />
 
         <ImageView
@@ -142,8 +142,8 @@
             android:layout_gravity="center"
             android:layout_weight="1"
             android:contentDescription="@string/control_button"
-            android:scaleType="fitCenter"
             android:onClick="playButtonClicked"
+            android:scaleType="fitCenter"
             android:src="@drawable/play" />
 
         <ImageView

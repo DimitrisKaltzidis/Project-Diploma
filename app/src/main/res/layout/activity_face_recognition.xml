@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:opencv="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -19,9 +20,10 @@
         android:id="@+id/jcvFaceDetection"
         android:layout_width="150dp"
         android:layout_height="150dp"
-        android:visibility="visible"
+        android:layout_alignParentEnd="true"
         android:layout_below="@+id/relativeLayout"
-        android:layout_alignParentEnd="true" />
+        android:visibility="visible"
+        opencv:show_fps="true" />
 
     <LinearLayout
         android:id="@+id/relativeLayout"
@@ -148,17 +150,17 @@
     </LinearLayout>
 
     <TextView
+        android:id="@+id/tvFaceRatio"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="@string/face_ratio"
-        android:gravity="center_vertical"
-        android:textStyle="bold"
-        android:textColor="@color/colorAccent"
-        android:id="@+id/tvFaceRatio"
-        android:layout_below="@+id/jcvFaceDetection"
         android:layout_alignBottom="@+id/fragmentMap"
         android:layout_alignParentEnd="true"
+        android:layout_below="@+id/jcvFaceDetection"
+        android:layout_marginLeft="2dp"
         android:layout_toEndOf="@+id/fragmentMap"
-        android:layout_marginLeft="2dp" />
+        android:gravity="center_vertical"
+        android:text="@string/face_ratio"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@color/colorAccent"
+        android:textStyle="bold" />
 </RelativeLayout>

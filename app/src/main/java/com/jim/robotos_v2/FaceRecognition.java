@@ -60,6 +60,9 @@ import org.opencv.objdetect.CascadeClassifier;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 
 public class FaceRecognition extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapClickListener, SensorEventListener, View.OnLongClickListener {
@@ -88,11 +91,12 @@ public class FaceRecognition extends AppCompatActivity implements CameraBridgeVi
     private TextToSpeech textToSpeech;
     private Bluetooth bt;
     private static StringBuilder sb = new StringBuilder();
-
+    // private  ArrayList<Boolean> facesInASecond = new ArrayList<>();
+    private List<Boolean> facesInASecond = Collections.synchronizedList(new ArrayList<Boolean>());
 
     private Sensor gSensor;
     private Sensor mSensor;
-
+    private volatile boolean faceDetected = false;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -203,6 +207,46 @@ public class FaceRecognition extends AppCompatActivity implements CameraBridgeVi
 
         openCvCameraView = (CameraBridgeViewBase) findViewById(R.id.jcvFaceDetection);
         openCvCameraView.setCvCameraViewListener(this);
+
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                try {
+                    int listSize = facesInASecond.size();
+                    int trues = Collections.frequency(facesInASecond, true);
+                    int falses = Collections.frequency(facesInASecond, false);
+
+                    final int faceRatio = (trues / listSize) * 100;
+
+                    if (faceRatio > 65) {
+                        faceDetected = true;
+
+                    } else {
+                        faceDetected = false;
+                    }
+
+                    runOnUiThread(new Runnable() // start actions in UI thread
+                    {
+
+                        @Override
+                        public void run() {
+                            if (faceDetected)
+                                Utilities.setDirectionImage("STOP", ivDirection, bt);
+
+                            tvFaceRatio.setText("Face ratio: " + faceRatio + "%");
+                        }
+                    });
+
+
+                    Log.d("face state", " " + faceDetected);
+                    facesInASecond.clear();
+                } catch (Exception e) {
+                    //  Log.e("ERROR", e.printStackTrace() + "");
+                    e.printStackTrace();
+                }
+                handler.postDelayed(this, 1000); //1 second
+            }
+        }, 1000); //Every 1000 ms (1 second)
     }
 
 
@@ -243,6 +287,12 @@ public class FaceRecognition extends AppCompatActivity implements CameraBridgeVi
         for (int i = 0; i < facesArray.length; i++)
             Core.rectangle(mRgba, facesArray[i].tl(), facesArray[i].br(), new Scalar(0, 255, 0, 255), 3);
 
+
+        if (facesArray.length > 0) {
+            facesInASecond.add(true);
+        } else {
+            facesInASecond.add(false);
+        }
 
         return mRgba;
     }
@@ -394,7 +444,8 @@ public class FaceRecognition extends AppCompatActivity implements CameraBridgeVi
             compassBearingDegrees = Utilities.correctCompassBearing(azimuth, robotLocation);
             currentDegree = Utilities.compassAnimationHandler(ivCompass, compassBearingDegrees, currentDegree);
             currentDegreeNorth = Utilities.compassNorthIconHandler(ivCompassNorth, compassBearingDegrees, currentDegreeNorth);
-            command = Utilities.giveDirection(compassBearingDegrees, ivDirection, ivCompass, route, robotLocation, this, command, mMap, getResources(), tvDistance, textToSpeech, bt);
+            if (!faceDetected)
+                command = Utilities.giveDirection(compassBearingDegrees, ivDirection, ivCompass, route, robotLocation, this, command, mMap, getResources(), tvDistance, textToSpeech, bt);
             //  Log.e("DIRECTION", command);
 
             if (command.equals("FINISH")) {

@@ -25,7 +25,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/bearing_range"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                android:textColor="@color/colorPrimary"
+                android:textColor="@color/colorAccent"
                 android:textStyle="bold" />
 
             <EditText
@@ -34,7 +34,7 @@
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:inputType="numberDecimal"
-                android:textColor="@color/colorAccent" />
+                android:textColor="@color/colorPrimary" />
 
             <TextView
                 android:id="@+id/textView2"
@@ -43,7 +43,7 @@
                 android:layout_marginTop="20dp"
                 android:text="@string/map_error_range"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                android:textColor="@color/colorPrimary"
+                android:textColor="@color/colorAccent"
                 android:textStyle="bold" />
 
             <EditText
@@ -52,7 +52,7 @@
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:inputType="numberDecimal"
-                android:textColor="@color/colorAccent" />
+                android:textColor="@color/colorPrimary" />
 
 
             <TextView
@@ -62,7 +62,7 @@
                 android:layout_marginTop="20dp"
                 android:text="@string/avoid_angle_range"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                android:textColor="@color/colorPrimary"
+                android:textColor="@color/colorAccent"
                 android:textStyle="bold" />
 
             <EditText
@@ -71,7 +71,7 @@
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:inputType="numberDecimal"
-                android:textColor="@color/colorAccent" />
+                android:textColor="@color/colorPrimary" />
 
             <TextView
                 android:id="@+id/textView4"
@@ -80,7 +80,7 @@
                 android:layout_marginTop="20dp"
                 android:text="@string/avoid_point_map_error"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                android:textColor="@color/colorPrimary"
+                android:textColor="@color/colorAccent"
                 android:textStyle="bold" />
 
             <EditText
@@ -89,7 +89,25 @@
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:inputType="numberDecimal"
-                android:textColor="@color/colorAccent" />
+                android:textColor="@color/colorPrimary" />
+
+            <TextView
+                android:id="@+id/textView5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Face % of the screen"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="@color/colorAccent"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etFaceRatio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="numberDecimal"
+                android:textColor="@color/colorPrimary" />
         </LinearLayout>
     </ScrollView>
 

@@ -11,7 +11,7 @@ import com.jim.robotos_v2.Utilities.Preferences;
 
 public class Settings extends AppCompatActivity {
 
-    private EditText etMapErrorRange, etBearingRange, etAvoidAngleRange, etAvoidPointMapError;
+    private EditText etMapErrorRange, etBearingRange, etAvoidAngleRange, etAvoidPointMapError, etFaceRatio;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,13 +26,13 @@ public class Settings extends AppCompatActivity {
         etAvoidAngleRange = (EditText) findViewById(R.id.etAvoidAngleRange);
         //metra pou prostithontai stin apostasi apofigis tou empodiou logo pithanis asimfwnias xarti pragmatikotitas
         etAvoidPointMapError = (EditText) findViewById(R.id.etAvoidPointMapError);
-
+        etFaceRatio = (EditText) findViewById(R.id.etFaceRatio);
 
         etMapErrorRange.setText("" + Preferences.loadPrefsFloat("DISTANCE_ERROR_RANGE", 3, getApplicationContext()));
         etBearingRange.setText("" + Preferences.loadPrefsFloat("BEARING_RANGE", 20, getApplicationContext()));
         etAvoidAngleRange.setText("" + Preferences.loadPrefsFloat("OBSTACLE_AVOIDING_BEARING_ERROR_RANGE_DEGREES", 3f, getApplicationContext()));
         etAvoidPointMapError.setText("" + Preferences.loadPrefsFloat("OBSTACLE_AVOIDING_MAP_ERROR_METERS", 1f, getApplicationContext()));
-
+        etFaceRatio.setText("" + (double) Preferences.loadPrefsFloat("FACE_PERCENT_OF_THE_SCREEN", 0.2f, getApplicationContext()));
 
     }
 
@@ -43,6 +43,7 @@ public class Settings extends AppCompatActivity {
             Preferences.savePrefsFloat("BEARING_RANGE", Float.parseFloat(etBearingRange.getText().toString()), getApplicationContext());
             Preferences.savePrefsFloat("OBSTACLE_AVOIDING_BEARING_ERROR_RANGE_DEGREES", Float.parseFloat(etAvoidAngleRange.getText().toString()), getApplicationContext());
             Preferences.savePrefsFloat("OBSTACLE_AVOIDING_MAP_ERROR_METERS", Float.parseFloat(etAvoidPointMapError.getText().toString()), getApplicationContext());
+            Preferences.savePrefsFloat("FACE_PERCENT_OF_THE_SCREEN", Float.parseFloat(etAvoidPointMapError.getText().toString()), getApplicationContext());
 
             Toast.makeText(getApplicationContext(), R.string.saved, Toast.LENGTH_SHORT).show();
         } catch (Exception e) {

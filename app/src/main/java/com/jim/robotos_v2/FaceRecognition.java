@@ -313,12 +313,12 @@ public class FaceRecognition extends AppCompatActivity implements CameraBridgeVi
 
 
         // The faces will be a 20% of the height of the screen
-        absoluteFaceSize = (int) (height * 0.2);
+        absoluteFaceSize = (int) (height * (double) Preferences.loadPrefsFloat("FACE_PERCENT_OF_THE_SCREEN", 0.2f, getApplicationContext()));
     }
 
     @Override
     public void onCameraViewStopped() {
-
+        mRgba.release();
     }
 
     @Override
@@ -486,6 +486,7 @@ public class FaceRecognition extends AppCompatActivity implements CameraBridgeVi
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mMap.setMapType(Utilities.getMapType(this));
+        mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.setOnMapClickListener(this);
     }
 

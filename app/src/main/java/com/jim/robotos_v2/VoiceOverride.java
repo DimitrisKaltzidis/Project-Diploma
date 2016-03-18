@@ -313,9 +313,9 @@ public class VoiceOverride extends AppCompatActivity implements RecognitionListe
         // If we are not spotting, start listening with timeout (10000 ms or 10 seconds).
         if (searchName.equals(KWS_SEARCH))
             recognizer.startListening(searchName);
-        else
+     /*   else
             // recognizer.startListening(searchName);
-            recognizer.startListening(searchName, 10000);
+            recognizer.startListening(searchName, 10000);*/
 
         //String caption = getResources().getString(searchName);
         ((TextView) findViewById(R.id.user_help)).setText(R.string.robot_move);

@@ -182,6 +182,7 @@ public class FieldNavigation extends AppCompatActivity implements OnMapReadyCall
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mMap.setMapType(Utilities.getMapType(this));
+        mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.setOnMapClickListener(this);
     }
 

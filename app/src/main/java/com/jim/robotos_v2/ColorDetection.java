@@ -206,6 +206,7 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
             mBlobColorRgba.val[2] = colorValues.get(2);
             mBlobColorRgba.val[3] = colorValues.get(3);
             mDetector.setHsvColor(Utilities.convertScalarRgba2Hsv(mBlobColorRgba));
+            ivDetectionColor.setBackgroundColor(Color.rgb((int) mBlobColorRgba.val[0], (int) mBlobColorRgba.val[1], (int) mBlobColorRgba.val[2]));
         }
     }
 

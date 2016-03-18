@@ -91,15 +91,15 @@ public class Obstacle implements Serializable {
     @Override
     public String toString() {
 
-        return "Obstacle{" +
+        return "Obstacle\n" + "{" +
                 "location=" + latitude + " , " + longitude + "\n" +
-                ", compassDetectionDegrees=" + compassDetectionDegrees + "\n" +
-                ", compassAvoidanceDegrees=" + compassAvoidanceDegrees + "\n" +
+                ", detectionDegrees=" + compassDetectionDegrees + "\n" +
+                ", avoidanceDegrees=" + compassAvoidanceDegrees + "\n" +
                 ", avoidingAngleDegrees=" + avoidingAngleDegrees + "\n" +
                 ", relativeSpecification='" + relativeSpecification + '\'' + "\n" +
                 ", errorRange=" + errorRange + "\n" +
                 ", obstacleID=" + obstacleID + "\n" +
-                ", name='" + name + '\'' + "\n" + ", color rgb='" + color[0] + ", " + color[1] + ", " + color[2] + "'" + "\n" +
+                ", name='" + name + '\'' + "\n" + ", color rgb='" + color[0] + ", " + color[1] + ", " + color[2] + "'" +
                 '}'
                 ;
     }

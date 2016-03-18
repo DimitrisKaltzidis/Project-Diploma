@@ -26,6 +26,7 @@
             android:layout_marginTop="16dp"
             android:hint="@string/red"
             android:inputType="number"
+            android:textColor="@color/red_soft"
             android:textColorHint="@color/red_area" />
 
         <EditText
@@ -37,6 +38,7 @@
             android:layout_marginTop="4dp"
             android:fontFamily="sans-serif"
             android:hint="@string/green"
+            android:textColor="@color/green"
             android:inputType="number"
             android:textColorHint="@color/green" />
 
@@ -48,6 +50,7 @@
             android:layout_marginRight="4dp"
             android:fontFamily="sans-serif"
             android:hint="@string/blue"
+            android:textColor="@color/blue"
             android:inputType="number"
             android:textColorHint="@color/blue" />
 
@@ -61,6 +64,7 @@
             android:fontFamily="sans-serif"
             android:hint="@string/alpha"
             android:inputType="number"
+            android:textColor="@color/grey"
             android:textColorHint="@color/grey" />
 
         <ImageView

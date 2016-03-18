@@ -44,12 +44,12 @@ public class MapUtilities {
             if (systemDefined)
                 mMap.addMarker(new MarkerOptions().position(location).title(markerInfo).flat(false).icon(BitmapDescriptorFactory.fromResource(R.drawable.system_marker_blue))).showInfoWindow();
             else
-            mMap.addMarker(new MarkerOptions().position(location).title(markerInfo).flat(false).icon(BitmapDescriptorFactory.fromResource(R.drawable.grey_marker))).showInfoWindow();
+                mMap.addMarker(new MarkerOptions().position(location).title(markerInfo).flat(false).icon(BitmapDescriptorFactory.fromResource(R.drawable.grey_marker))).showInfoWindow();
         } else {
             if (systemDefined)
                 mMap.addMarker(new MarkerOptions().position(location).title(markerInfo).flat(false).icon(BitmapDescriptorFactory.fromResource(R.drawable.system_marker_green))).showInfoWindow();
             else
-            mMap.addMarker(new MarkerOptions().position(location).title(markerInfo).flat(false).icon(BitmapDescriptorFactory.fromResource(R.drawable.green_marker))).showInfoWindow();
+                mMap.addMarker(new MarkerOptions().position(location).title(markerInfo).flat(false).icon(BitmapDescriptorFactory.fromResource(R.drawable.green_marker))).showInfoWindow();
         }
         animateCameraLatLng(mMap, location, res);
     }
@@ -73,7 +73,7 @@ public class MapUtilities {
         marker = mMap.addMarker(m);
         marker.showInfoWindow();
         if (animateTheCamera)
-            //   animateCameraLatLng(mMap, location, res);
+            animateCameraLatLng(mMap, location, res);
 
         Log.d("ROBOT_LOCATION", "Latitude: " + location.latitude + " Longitude: " + location.longitude);
         // Toast.makeText(context,"Latitude: " +location.latitude+" Longitude: "+location.longitude,Toast.LENGTH_LONG).show();

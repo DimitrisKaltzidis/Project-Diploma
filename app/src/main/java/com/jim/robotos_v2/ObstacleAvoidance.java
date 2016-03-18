@@ -104,6 +104,9 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
     private Sensor mSensor;
     private ArrayList<Obstacle> detectedObstacles = new ArrayList<>();
     private String mode = "PATH";
+    private ArrayList<Double> colorValues = new ArrayList<>();
+    private boolean inScenarioMode = false;
+
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -130,6 +133,15 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
         setContentView(R.layout.activity_obstacle_avoidance);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+
+        try {
+            colorValues = (ArrayList<Double>) getIntent().getSerializableExtra("detectionColor");
+            inScenarioMode = true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.jcvColorDetection);
         mOpenCvCameraView.setCvCameraViewListener(this);
@@ -252,7 +264,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
                                     }
 
                                     if (mode.equals("PATH")) {
-                                        command = Utilities.giveDirection(compassBearingDegrees, ivDirection, ivCompass, route, robotLocation, getApplicationContext(), command, mMap, getResources(), tvDistance, textToSpeech, bt);
+                                        command = Utilities.giveDirection(compassBearingDegrees, ivDirection, ivCompass, route, robotLocation, getApplicationContext(), command, mMap, getResources(), tvDistance, textToSpeech, bt, true);
                                         previousCommand = command;
                                         mIsColorSelected = false;
 
@@ -274,7 +286,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
                                     }
 
 
-                                    // END OF PATH REACHED - FINISH PROGRAM
+                                    // END OF PATH REACHED - PROGRAM
                                     if (command.equals("FINISH")) {
                                         mMap.clear();
                                         tvDistance.setText("---m");
@@ -284,14 +296,26 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
                                         route.clearRoute();
 
                                         try {
-                                            if (!detectedObstacles.isEmpty()) {
-                                                textToSpeech.speak(detectedObstacles.size() + "OBSTACLE DETECTED", TextToSpeech.QUEUE_ADD, null);
-                                                //showObstaclesAsAlist();
-                                                Intent intent = new Intent(ObstacleAvoidance.this, RouteObstaclesListView.class);
+                                            if (!inScenarioMode) {
+                                                if (!detectedObstacles.isEmpty()) {
+                                                    textToSpeech.speak(detectedObstacles.size() + "OBSTACLE DETECTED", TextToSpeech.QUEUE_ADD, null);
+                                                    //showObstaclesAsAlist();
+                                                    Intent intent = new Intent(ObstacleAvoidance.this, RouteObstaclesListView.class);
+                                                    intent.putExtra("mylist", detectedObstacles);
+                                                    startActivity(intent);
+                                                } else
+                                                    textToSpeech.speak("NO OBSTACLES DETECTED", TextToSpeech.QUEUE_ADD, null);
+                                            } else {
+                                                textToSpeech.speak("SEARCHING FOR SPECIFIED COLOR", TextToSpeech.QUEUE_ADD, null);
+
+
+                                                Intent intent = new Intent(ObstacleAvoidance.this, ColorDetection.class);
                                                 intent.putExtra("mylist", detectedObstacles);
+                                                intent.putExtra("detectionColor", colorValues);
                                                 startActivity(intent);
-                                            } else
-                                                textToSpeech.speak("NO OBSTACLES DETECTED", TextToSpeech.QUEUE_ADD, null);
+
+
+                                            }
                                         } catch (Exception r) {
                                             r.printStackTrace();
                                             Log.d(TAG, "ERROR OPENING NEW ACTIVITY");
@@ -340,6 +364,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mMap.setMapType(Utilities.getMapType(this));
+        mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.setOnMapClickListener(this);
     }
 
@@ -426,7 +451,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
     @Override
     public void onLocationChanged(Location location) {
         robotLocation = location;
-        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(), getApplicationContext());
+        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), false, getResources(), getApplicationContext());
     }
 
     @Override

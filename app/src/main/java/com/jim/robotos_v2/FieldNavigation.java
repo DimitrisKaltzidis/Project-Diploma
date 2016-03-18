@@ -128,7 +128,7 @@ public class FieldNavigation extends AppCompatActivity implements OnMapReadyCall
                             public void run() {
                                 if (robotLocation != null && (!route.isEmpty()) && running && textToSpeech != null) {
 
-                                    command = Utilities.giveDirection(compassBearingDegrees, ivDirection, ivCompass, route, robotLocation, getApplicationContext(), command, mMap, getResources(), tvDistance, textToSpeech, bt);
+                                    command = Utilities.giveDirection(compassBearingDegrees, ivDirection, ivCompass, route, robotLocation, getApplicationContext(), command, mMap, getResources(), tvDistance, textToSpeech, bt, false);
 
 
                                     // END OF PATH REACHED - FINISH PROGRAM
@@ -267,7 +267,7 @@ public class FieldNavigation extends AppCompatActivity implements OnMapReadyCall
     @Override
     public void onLocationChanged(Location location) {
         robotLocation = location;
-        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), true, getResources(), getApplicationContext());
+        robotMarker = MapUtilities.placeRobotMarkerOnMap(robotMarker, mMap, Utilities.convertLocationToLatLng(robotLocation), false, getResources(), getApplicationContext());
     }
 
     @Override

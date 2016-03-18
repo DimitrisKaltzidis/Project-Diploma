@@ -1,11 +1,13 @@
 package com.jim.robotos_v2;
 
 import android.bluetooth.BluetoothAdapter;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
@@ -21,6 +23,7 @@ import android.widget.TextView;
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.jim.robotos_v2.ComputerVision.ColorBlobDetector;
+import com.jim.robotos_v2.RouteLogic.Obstacle;
 import com.jim.robotos_v2.Utilities.Bluetooth;
 import com.jim.robotos_v2.Utilities.Preferences;
 import com.jim.robotos_v2.Utilities.Utilities;
@@ -38,7 +41,9 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class ColorDetection extends AppCompatActivity implements View.OnTouchListener, CameraBridgeViewBase.CvCameraViewListener2 {
 
@@ -46,8 +51,6 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
 
     private boolean mIsColorSelected = false;
     private Mat mRgba;
-    private Scalar mBlobColorRgba;
-    private Scalar mBlobColorHsv;
     private ColorBlobDetector mDetector;
     private Mat mSpectrum;
     private Size SPECTRUM_SIZE;
@@ -62,8 +65,14 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
     private String command = "STOP";
     private org.opencv.core.Point rectTopLeft;
     private static int distanceToObject = 200000;
-
+    private int pointColor;
+    private ArrayList<Double> colorValues;
+    private boolean inScenarioMode = false;
+    private ArrayList<Obstacle> detectedObstacles;
     private CameraBridgeViewBase mOpenCvCameraView;
+    private Scalar mBlobColorRgba;
+    private TextToSpeech textToSpeech;
+    private Scalar mBlobColorHsv;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -82,6 +91,7 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
             }
         }
     };
+    private boolean flagCompleted;
 
 
     @Override
@@ -91,6 +101,29 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+        try {
+            colorValues = (ArrayList<Double>) getIntent().getSerializableExtra("detectionColor");
+            detectedObstacles = (ArrayList<Obstacle>) getIntent().getSerializableExtra("mylist");
+            if (!colorValues.isEmpty()) {
+                inScenarioMode = true;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        textToSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status != TextToSpeech.ERROR) {
+                    textToSpeech.setLanguage(Locale.ENGLISH);
+
+                    if (inScenarioMode) {
+                        textToSpeech.speak("SEARCHING FOR SPECIFIED COLOR", TextToSpeech.QUEUE_ADD, null);
+                    }
+                }
+            }
+        });
         initializeGraphicComponents();
 
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.jcvColorDetection);
@@ -113,8 +146,21 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
                             @Override
                             public void run() {
                                 Log.d(TAG, "run: 2" + Thread.interrupted());
-                                if (mIsColorSelected)
-                                    command = Utilities.giveDirectionColorDetectionVersion2(center, distanceToObject, bottomLineHeight, leftLineWidth, rightLineWidth, ivDirection, bt, getApplicationContext(), command);
+                                if (mIsColorSelected && (!command.equals("FINISH"))) {
+                                    command = Utilities.giveDirectionColorDetectionVersion2(center, distanceToObject, bottomLineHeight, leftLineWidth, rightLineWidth, ivDirection, bt, getApplicationContext(), command, inScenarioMode);
+
+                                }
+                                if (command.equals("FINISH") && !flagCompleted) {
+                                    textToSpeech.speak("SCENARIO MODE COMPLETED! . FOUND " + detectedObstacles.size() + " OBSTACLES", TextToSpeech.QUEUE_ADD, null);
+                                    flagCompleted = true;
+                                    if (detectedObstacles.size() > 0) {
+                                        Intent intent = new Intent(ColorDetection.this, RouteObstaclesListView.class);
+                                        intent.putExtra("mylist", detectedObstacles);
+                                        startActivity(intent);
+                                    } else {
+
+                                    }
+                                }
                             }
                         });
                     } catch (InterruptedException e) {
@@ -140,10 +186,8 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
     @Override
     public void onCameraViewStarted(int width, int height) {
         mRgba = new Mat(height, width, CvType.CV_8UC4);
-        mDetector = new ColorBlobDetector();
         mSpectrum = new Mat();
-        mBlobColorRgba = new Scalar(255);
-        mBlobColorHsv = new Scalar(255);
+        mDetector = new ColorBlobDetector();
         SPECTRUM_SIZE = new Size(200, 64);
         center = null;
         bottomLineHeight = (double) Preferences.loadPrefsInt("BOTTOM_LINE_VALUE", 500, getApplicationContext());
@@ -151,6 +195,18 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
         cameraViewWidth = (double) mOpenCvCameraView.getWidth();
         leftLineWidth = (double) 1 * (cameraViewWidth / 4);
         rightLineWidth = (double) 2 * (cameraViewWidth / 4);
+        pointColor = getResources().getColor(R.color.lime);
+        mBlobColorRgba = new Scalar(255);
+        mBlobColorHsv = new Scalar(255);
+        if (inScenarioMode) {
+
+            mIsColorSelected = true;
+            mBlobColorRgba.val[0] = colorValues.get(0);
+            mBlobColorRgba.val[1] = colorValues.get(1);
+            mBlobColorRgba.val[2] = colorValues.get(2);
+            mBlobColorRgba.val[3] = colorValues.get(3);
+            mDetector.setHsvColor(Utilities.convertScalarRgba2Hsv(mBlobColorRgba));
+        }
     }
 
     @Override
@@ -169,13 +225,16 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
             try {
                 if (!contours.isEmpty()) {
                     temp = Imgproc.boundingRect(contours.get(0));
-                    Core.rectangle(mRgba, temp.tl(), temp.br(), new Scalar(238, 233, 60), 3);
+                    Core.rectangle(mRgba, temp.tl(), temp.br(), new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), 3);
 
                     rectTopLeft = temp.tl();
 
                     center = new org.opencv.core.Point(rectTopLeft.x + (temp.width / 2), rectTopLeft.y + (temp.height / 2));
 
-                    Core.circle(mRgba, center, 4, new Scalar(128, 255, 0));
+                    Core.circle(mRgba, center, 6, new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), -1);
+
+                } else {
+                    center = new org.opencv.core.Point(-1, -1);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -262,6 +321,13 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
     @Override
     public void onPause() {
         super.onPause();
+
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
+
+
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
 
@@ -475,7 +541,7 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
             public void onTextChanged(CharSequence s, int start, int before, int count) {
 
                 try {
-                    tempBlobColorRgba.val[1] = Double.parseDouble(etAlpha.getText().toString());
+                    tempBlobColorRgba.val[3] = Double.parseDouble(etAlpha.getText().toString());
                     ivColor.setBackgroundColor(Color.argb((int) tempBlobColorRgba.val[3], (int) tempBlobColorRgba.val[0], (int) tempBlobColorRgba.val[1], (int) tempBlobColorRgba.val[2]));
                 } catch (Exception e) {
                     e.printStackTrace();

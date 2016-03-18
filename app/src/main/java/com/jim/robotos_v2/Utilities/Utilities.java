@@ -105,7 +105,7 @@ public class Utilities {
         return mapTypeInteger;
     }
 
-    public static String giveDirection(float compassBearing, ImageView ivDirection, ImageView ivCompass, Route route, Location robotLocation, Context context, String previousCommand, GoogleMap mMap, Resources resources, TextView tvDistance, TextToSpeech tts, Bluetooth bluetooth) {
+    public static String giveDirection(float compassBearing, ImageView ivDirection, ImageView ivCompass, Route route, Location robotLocation, Context context, String previousCommand, GoogleMap mMap, Resources resources, TextView tvDistance, TextToSpeech tts, Bluetooth bluetooth, boolean obstacleAvoidingClass) {
         String directionToReturn;
 
         float bearingRange = Preferences.loadPrefsFloat("BEARING_RANGE", 20, context);
@@ -119,12 +119,13 @@ public class Utilities {
 
             float distance = robotLocation.distanceTo(route.getNextPoint().getPositionAsLocationobject());
 
-            // tvDistance.setText((int) distance + "m");
+            if (!obstacleAvoidingClass)
+                tvDistance.setText((int) distance + "m");
 
             float distanceErrorRange = Preferences.loadPrefsFloat("DISTANCE_ERROR_RANGE", 3, context);
 
             if (distance <= distanceErrorRange) {
-                tts.speak(route.getNextPoint().getName() + " REACHED", TextToSpeech.QUEUE_FLUSH, null);
+                tts.speak(route.getNextPoint().getName() + " REACHED", TextToSpeech.QUEUE_ADD, null);
                 route.setCurrentPointAsVisited();
                 MapUtilities.drawPathOnMap(mMap, route, resources);
 
@@ -157,7 +158,7 @@ public class Utilities {
             }
         } else {
             if (!tts.isSpeaking()) {
-                tts.speak("ROUTE COMPLETED", TextToSpeech.QUEUE_FLUSH, null);
+                tts.speak("ROUTE COMPLETED", TextToSpeech.QUEUE_ADD, null);
             }
             return "FINISH";
 
@@ -490,30 +491,40 @@ public class Utilities {
      * @param bt               bluetooth object to handle the communication
      * @param context          the application context to access preferences
      */
-    public static String giveDirectionColorDetectionVersion2(org.opencv.core.Point center, int distanceToObject, double bottomLineHeight, double leftLineWidth, double rightLineWidth, ImageView ivDirection, Bluetooth bt, Context context, String previousCommand) {
+    public static String giveDirectionColorDetectionVersion2(org.opencv.core.Point center, int distanceToObject, double bottomLineHeight, double leftLineWidth, double rightLineWidth, ImageView ivDirection, Bluetooth bt, Context context, String previousCommand, boolean inScenarioMode) {
 
         String command = "STOP";
+        boolean finished = false;
         try {
 
 
             if (distanceToObject < Preferences.loadPrefsInt("DISTANCE_TO_STOP_FROM_OBSTACLE_CM", 50, context)) {
                 command = "STOP";
+                if (inScenarioMode)
+                    finished = true;
             } else {
-                if (center.y > bottomLineHeight) {
-                    command = "STOP";
-                } else {
-                    if (center.x >= leftLineWidth && center.x <= rightLineWidth) {
-                        command = "FORWARD";
-                    } else if (center.x < leftLineWidth) {
-                        command = "RIGHT";
+                if (center.y != -1) {
+                    if (center.y > bottomLineHeight) {
+                        command = "STOP";
+                        if (inScenarioMode)
+                            finished = true;
                     } else {
-                        command = "LEFT";
+                        if (center.x >= leftLineWidth && center.x <= rightLineWidth) {
+                            command = "FORWARD";
+                        } else if (center.x < leftLineWidth) {
+                            command = "RIGHT";
+                        } else {
+                            command = "LEFT";
+                        }
                     }
+                } else {
+                    command = "RIGHT";
                 }
+                // Log.d("pigadi", center.y + "");
             }
 
             if (!command.equals(previousCommand))
-            Utilities.setDirectionImage(command, ivDirection, bt);
+                Utilities.setDirectionImage(command, ivDirection, bt);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -521,6 +532,9 @@ public class Utilities {
             command = "STOP";
         }
 
+        if (finished) {
+            return "FINISH";
+        }
         return command;
 
 

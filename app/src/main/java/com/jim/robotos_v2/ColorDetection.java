@@ -92,6 +92,7 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
         }
     };
     private boolean flagCompleted;
+    private int bigAreaColor;
 
 
     @Override
@@ -196,6 +197,7 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
         leftLineWidth = (double) 1 * (cameraViewWidth / 4);
         rightLineWidth = (double) 2 * (cameraViewWidth / 4);
         pointColor = getResources().getColor(R.color.lime);
+        bigAreaColor = getResources().getColor(R.color.red_area);
         mBlobColorRgba = new Scalar(255);
         mBlobColorHsv = new Scalar(255);
         if (inScenarioMode) {
@@ -243,9 +245,9 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
             }
 
 
-            Core.line(mRgba, new org.opencv.core.Point(leftLineWidth, cameraViewHeight), new org.opencv.core.Point(leftLineWidth, 0), new Scalar(255, 0, 0, 255), 5);
+            Core.line(mRgba, new org.opencv.core.Point(leftLineWidth, cameraViewHeight), new org.opencv.core.Point(leftLineWidth, 0),  new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor), Color.alpha(bigAreaColor)), 5);
 
-            Core.line(mRgba, new org.opencv.core.Point(rightLineWidth, cameraViewHeight), new org.opencv.core.Point(rightLineWidth, 0), new Scalar(255, 0, 0, 255), 5);
+            Core.line(mRgba, new org.opencv.core.Point(rightLineWidth, cameraViewHeight), new org.opencv.core.Point(rightLineWidth, 0), new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor), Color.alpha(bigAreaColor)), 5);
 
             Core.line(mRgba, new org.opencv.core.Point(cameraViewWidth, bottomLineHeight), new org.opencv.core.Point(0, bottomLineHeight), new Scalar(154, 189, 47), 6);
 

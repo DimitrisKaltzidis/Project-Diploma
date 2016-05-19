@@ -7,7 +7,7 @@
     <string name="activity_road_navigation_label">Road Navigation</string>
     <string name="activity_manual_override_label">Manual Override</string>
     <string name="activity_color_detection_label">Color Detection</string>
-    <string name="activity_face_recognition_label">Face Recognition</string>
+    <string name="activity_face_recognition_label">Facial Recognition</string>
     <string name="activity_scenario_mode_label">Scenario Mode</string>
     <string name="activity_voice_override_label">Voice Override</string>
     <string name="activity_obstacle_avoidance_label">Obstacle Avoidance</string>

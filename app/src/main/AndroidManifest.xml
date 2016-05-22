@@ -84,8 +84,7 @@
         <activity
             android:name=".ManualOverride"
             android:configChanges="orientation"
-            android:label="@string/activity_manual_override_label"
-            android:screenOrientation="landscape" />
+            android:label="@string/activity_manual_override_label" />
         <activity
             android:name=".VoiceOverride"
             android:configChanges="orientation"

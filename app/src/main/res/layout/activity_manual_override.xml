@@ -19,64 +19,41 @@
         android:layout_alignParentStart="true"
         android:contentDescription="@string/control_button" />
 
+
     <ImageView
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:id="@+id/ivRight"
         android:src="@drawable/right"
-        android:layout_centerVertical="true"
-        android:layout_toEndOf="@+id/ivLeft"
-        android:layout_marginStart="40dp"
-        android:contentDescription="@string/control_button" />
+        android:contentDescription="@string/control_button"
+        android:layout_alignTop="@+id/ivLeft"
+        android:layout_alignParentEnd="true" />
 
     <ImageView
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:id="@+id/ivForward"
-        android:src="@drawable/up"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:contentDescription="@string/control_button" />
+        android:id="@+id/ivDirection"
+        android:layout_width="wrap_content"
+        android:layout_height="41dp"
+        android:layout_gravity="center"
+        android:layout_weight="1"
+        android:contentDescription="@string/control_button"
+        android:scaleType="fitCenter"
+        android:src="@drawable/stop"
+        android:layout_alignParentBottom="true"
+        android:layout_alignStart="@+id/ivBackward" />
 
     <ImageView
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:id="@+id/ivBackward"
-        android:src="@drawable/down"
+        android:id="@+id/ivBluetooth"
+        android:layout_width="wrap_content"
+        android:layout_height="41dp"
+        android:layout_gravity="center"
+        android:layout_weight="1"
+        android:contentDescription="@string/control_button"
+        android:scaleType="fitCenter"
+        android:src="@drawable/disconnected"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:contentDescription="@string/control_button" />
+        android:layout_alignParentStart="true" />
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="300dp"
-        android:layout_height="wrap_content"
-        android:weightSum="4"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true">
-
-        <ImageView
-            android:id="@+id/ivBluetooth"
-            android:layout_width="wrap_content"
-            android:layout_height="41dp"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:contentDescription="@string/control_button"
-            android:scaleType="fitCenter"
-            android:src="@drawable/disconnected" />
-
-        <ImageView
-            android:id="@+id/ivDirection"
-            android:layout_width="wrap_content"
-            android:layout_height="41dp"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:contentDescription="@string/control_button"
-            android:scaleType="fitCenter"
-            android:src="@drawable/stop" />
-
-
-        <TextView
+    <TextView
             android:id="@+id/tvDistance"
             android:layout_width="wrap_content"
             android:layout_height="41dp"
@@ -86,7 +63,29 @@
             android:textAppearance="?android:attr/textAppearanceMediumInverse"
             android:textColor="@color/colorPrimary"
             android:textStyle="bold"
-            tools:ignore="RelativeOverlap" />
-    </LinearLayout>
+        tools:ignore="RelativeOverlap"
+        android:layout_alignParentBottom="true"
+        android:layout_alignStart="@+id/ivRight"
+        android:layout_marginStart="28dp" />
+
+    <ImageView
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:id="@+id/ivBackward"
+        android:src="@drawable/down"
+        android:contentDescription="@string/control_button"
+        android:layout_below="@+id/ivRight"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp" />
+
+    <ImageView
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:id="@+id/ivForward"
+        android:src="@drawable/up"
+        android:contentDescription="@string/control_button"
+        android:layout_above="@+id/ivRight"
+        android:layout_alignStart="@+id/ivBackward"
+        android:layout_marginBottom="20dp" />
 
 </RelativeLayout>

@@ -385,7 +385,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
 
 
         if (!OpenCVLoader.initDebug()) {
-            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_10, this, mLoaderCallback);
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
         } else {
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
@@ -717,25 +717,25 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
                     if (topLeft.x < mRgba.width() / 2 && topRight.x > mRgba.width() / 2) {
                         topMiddle = new org.opencv.core.Point(mRgba.width() / 2, rectTopLeft.y);
                         bottomMiddle = new org.opencv.core.Point(mRgba.width() / 2, rectTopLeft.y + temp.height);
-                        Core.circle(mRgba, topMiddle, 7, new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), -1);
-                        Core.circle(mRgba, bottomMiddle, 7, new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), -1);
+                        Imgproc.circle(mRgba, topMiddle, 7, new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), -1);
+                        Imgproc.circle(mRgba, bottomMiddle, 7, new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), -1);
 
                         areaLeft = (int) Utilities.calculateDistanceBetweenTwoPoints(topLeft, topMiddle) * temp.height;
                         areaRight = (int) Utilities.calculateDistanceBetweenTwoPoints(topMiddle, topRight) * temp.height;
 
                         if (areaRight > areaLeft) {
-                            Core.rectangle(mRgba, topMiddle, bottomRight, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor), Color.alpha(bigAreaColor)), -3);
-                            Core.rectangle(mRgba, topLeft, bottomMiddle, new Scalar(Color.red(smallAreaColor), Color.green(smallAreaColor), Color.blue(smallAreaColor), Color.alpha(smallAreaColor)), -3);
+                            Imgproc.rectangle(mRgba, topMiddle, bottomRight, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor), Color.alpha(bigAreaColor)), -3);
+                            Imgproc.rectangle(mRgba, topLeft, bottomMiddle, new Scalar(Color.red(smallAreaColor), Color.green(smallAreaColor), Color.blue(smallAreaColor), Color.alpha(smallAreaColor)), -3);
                             Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "LEFT", previousCommand);
                             previousCommand = "LEFT";
                         } else if (areaRight < areaLeft) {
-                            Core.rectangle(mRgba, topMiddle, bottomRight, new Scalar(Color.red(smallAreaColor), Color.green(smallAreaColor), Color.blue(smallAreaColor), Color.alpha(smallAreaColor)), -3);
-                            Core.rectangle(mRgba, topLeft, bottomMiddle, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor), Color.alpha(bigAreaColor)), -3);
+                            Imgproc.rectangle(mRgba, topMiddle, bottomRight, new Scalar(Color.red(smallAreaColor), Color.green(smallAreaColor), Color.blue(smallAreaColor), Color.alpha(smallAreaColor)), -3);
+                            Imgproc.rectangle(mRgba, topLeft, bottomMiddle, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor), Color.alpha(bigAreaColor)), -3);
                             Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "RIGHT", previousCommand);
                             previousCommand = "RIGHT";
                         } else if (areaRight == areaLeft) {
-                            Core.rectangle(mRgba, topMiddle, bottomRight, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor), Color.alpha(bigAreaColor)), -3);
-                            Core.rectangle(mRgba, topLeft, bottomMiddle, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor), Color.alpha(bigAreaColor)), -3);
+                            Imgproc.rectangle(mRgba, topMiddle, bottomRight, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor), Color.alpha(bigAreaColor)), -3);
+                            Imgproc.rectangle(mRgba, topLeft, bottomMiddle, new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor), Color.alpha(bigAreaColor)), -3);
 
                             if (Utilities.calculateDistanceBetweenTwoPoints(topLeft, topMiddle) == mRgba.width() / 2) {//full screen
                                 Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "BACKWARD", previousCommand);
@@ -752,7 +752,7 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
                         bottomMiddle = null;
                         areaRight = 0;
                         areaLeft = 0;
-                        Core.rectangle(mRgba, temp.tl(), temp.br(), new Scalar(Color.red(contourColor), Color.green(contourColor), Color.blue(contourColor)), -3);
+                        Imgproc.rectangle(mRgba, temp.tl(), temp.br(), new Scalar(Color.red(contourColor), Color.green(contourColor), Color.blue(contourColor)), -3);
 
                         if (topLeft.x < mRgba.width() / 2 && topRight.x < mRgba.width() / 2) {
                             Utilities.giveDirectionObstacleAvoidance(ivDirection, bt, "RIGHT", previousCommand);
@@ -766,11 +766,11 @@ public class ObstacleAvoidance extends AppCompatActivity implements OnMapReadyCa
 
 
                     // Draw points
-                    Core.circle(mRgba, center, 7, new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), -1);
-                    Core.circle(mRgba, topLeft, 7, new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), -1);
-                    Core.circle(mRgba, topRight, 7, new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), -1);
-                    Core.circle(mRgba, bottomLeft, 7, new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), -1);
-                    Core.circle(mRgba, bottomRight, 7, new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), -1);
+                    Imgproc.circle(mRgba, center, 7, new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), -1);
+                    Imgproc.circle(mRgba, topLeft, 7, new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), -1);
+                    Imgproc.circle(mRgba, topRight, 7, new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), -1);
+                    Imgproc.circle(mRgba, bottomLeft, 7, new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), -1);
+                    Imgproc.circle(mRgba, bottomRight, 7, new Scalar(Color.red(pointColor), Color.green(pointColor), Color.blue(pointColor)), -1);
 
 
                     // Core.line(mRgba, new org.opencv.core.Point(mRgba.width() / 2, 0), new org.opencv.core.Point(mRgba.width() / 2, mRgba.height()), new Scalar(255, 0, 0, 255), 5);

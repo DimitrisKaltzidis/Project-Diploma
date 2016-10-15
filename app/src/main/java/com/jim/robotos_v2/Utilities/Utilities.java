@@ -541,34 +541,40 @@ public class Utilities {
     }
 
     static int counter = 0;
-
+    static float SmoothFactorCompass = 0.5f;
+    static float SmoothThresholdCompass = 30.0f;
 
     /**
      * Eliminates the spikes (glitches) of the robot's proximity sensor based on min difference value(kai kala)
      *
-     * @param currentSensorValue  the current sensor reading
-     * @param previousSensorValue the previous sensor reading
+     * @param newCompass the current sensor reading
+     * @param oldCompass the previous sensor reading
      * @return the value with no spikes
      */
-    public static int normalizeReadingsFromDistanceSensor(int currentSensorValue, int previousSensorValue) {
+    public static int normalizeReadingsFromDistanceSensor(int newCompass, int oldCompass) {
 
-
-        if (counter == 0) {
-            return currentSensorValue;
-        }
-
-        if (currentSensorValue < 20) {
-            return previousSensorValue;
-        }
-
-
-        if (abs(previousSensorValue - currentSensorValue) > 40) {
-            return previousSensorValue;
+        if (Math.abs(newCompass - oldCompass) < 180) {
+            if (Math.abs(newCompass - oldCompass) > SmoothThresholdCompass) {
+                oldCompass = newCompass;
+            } else {
+                oldCompass = (int) (oldCompass + SmoothFactorCompass * (newCompass - oldCompass));
+            }
         } else {
-            return currentSensorValue;
+            if (360.0 - Math.abs(newCompass - oldCompass) > SmoothThresholdCompass) {
+                oldCompass = newCompass;
+            } else {
+                if (oldCompass > newCompass) {
+                    oldCompass = (int) ((oldCompass + SmoothFactorCompass * ((360 + newCompass - oldCompass) % 360) + 360) % 360);
+                } else {
+                    oldCompass = (int) ((oldCompass - SmoothFactorCompass * ((360 - newCompass + oldCompass) % 360) + 360) % 360);
+                }
+            }
         }
+        return oldCompass;
+    }
 
-
+    public static double applyLowPassFilter() {
+        return 0;
     }
 
     /**

@@ -1,7 +1,9 @@
 package com.jim.robotos_v2;
 
+import android.Manifest;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -12,6 +14,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.speech.tts.TextToSpeech;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -161,6 +164,16 @@ public class RoadNavigation extends AppCompatActivity implements OnMapReadyCallb
 
 
     protected void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 mGoogleApiClient, mLocationRequest, this);
     }
@@ -291,10 +304,10 @@ public class RoadNavigation extends AppCompatActivity implements OnMapReadyCallb
             //compassBearingDegrees = Utilities.correctCompassBearing(Math.round(event.values[0]), robotLocation);
 
             float azimuth = 0;
-
+            float oldCompassBearingDegrees = compassBearingDegrees;
             azimuth = Utilities.landscapeModeCompassCalibration(event);
             compassBearingDegrees = Utilities.correctCompassBearing(azimuth, robotLocation);
-
+            compassBearingDegrees = Utilities.normalizeReadingsFromDistanceSensor((int) compassBearingDegrees, (int) oldCompassBearingDegrees);
             currentDegree = Utilities.compassAnimationHandler(ivCompass, compassBearingDegrees, currentDegree);
             currentDegreeNorth = Utilities.compassNorthIconHandler(ivCompassNorth, compassBearingDegrees, currentDegreeNorth);
 

@@ -294,10 +294,10 @@ public class FieldNavigation extends AppCompatActivity implements OnMapReadyCall
             //compassBearingDegrees = Utilities.correctCompassBearing(Math.round(event.values[0]), robotLocation);
 
             float azimuth = 0;
-
+            float oldCompassBearingDegrees = compassBearingDegrees;
             azimuth = Utilities.landscapeModeCompassCalibration(event);
             compassBearingDegrees = Utilities.correctCompassBearing(azimuth, robotLocation);
-
+            compassBearingDegrees = Utilities.normalizeReadingsFromDistanceSensor((int) compassBearingDegrees, (int) oldCompassBearingDegrees);
             currentDegree = Utilities.compassAnimationHandler(ivCompass, compassBearingDegrees, currentDegree);
             currentDegreeNorth = Utilities.compassNorthIconHandler(ivCompassNorth, compassBearingDegrees, currentDegreeNorth);
 

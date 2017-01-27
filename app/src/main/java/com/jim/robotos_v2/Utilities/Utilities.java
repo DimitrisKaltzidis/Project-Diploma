@@ -76,10 +76,9 @@ public class Utilities {
         {
             float orientation[] = new float[3];
             SensorManager.getOrientation(R, orientation);
-            azimuth = orientation[0]; // orientation contains: azimut, pitch and roll
+            azimuth = orientation[0]; // orientation contains: azimuth, pitch and roll
             azimuth = (float) Math.toDegrees(azimuth) + 90;
             azimuth = (azimuth + 360) % 360;
-            // Log.d("AZIMUTH", " " + azimuth);
         }
 
         return azimuth;
@@ -323,7 +322,6 @@ public class Utilities {
     public static LocationRequest createLocationRequest(Resources res) {
         LocationRequest mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(res.getInteger(R.integer.refresh_location_interval_milliseconds));
-        // mLocationRequest.setFastestInterval(res.getInteger(R.integer.refresh_location_fastest_interval_milliseconds));
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         return mLocationRequest;
     }

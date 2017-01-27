@@ -1,6 +1,8 @@
 package com.jim.robotos_v2;
 
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -12,6 +14,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -45,7 +48,9 @@ import com.jim.robotos_v2.Utilities.Utilities;
 
 import java.util.Locale;
 
-public class FieldNavigation extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapClickListener, SensorEventListener, View.OnLongClickListener {
+public class FieldNavigation extends AppCompatActivity implements OnMapReadyCallback,
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
+        LocationListener, GoogleMap.OnMapClickListener, SensorEventListener, View.OnLongClickListener {
 
     private GoogleMap mMap;
     private LocationRequest mLocationRequest;
@@ -168,6 +173,9 @@ public class FieldNavigation extends AppCompatActivity implements OnMapReadyCall
 
 
     protected void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 mGoogleApiClient, mLocationRequest, this);
     }
@@ -306,7 +314,6 @@ public class FieldNavigation extends AppCompatActivity implements OnMapReadyCall
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        //old shit not in use
     }
 
     public void showMyLocationClicked(View view) {

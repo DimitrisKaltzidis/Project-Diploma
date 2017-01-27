@@ -244,17 +244,12 @@ public class ColorDetection extends AppCompatActivity implements View.OnTouchLis
                 center = new org.opencv.core.Point(-1, -1);
             }
 
-
             Core.line(mRgba, new org.opencv.core.Point(leftLineWidth, cameraViewHeight), new org.opencv.core.Point(leftLineWidth, 0),  new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor), Color.alpha(bigAreaColor)), 5);
 
             Core.line(mRgba, new org.opencv.core.Point(rightLineWidth, cameraViewHeight), new org.opencv.core.Point(rightLineWidth, 0), new Scalar(Color.red(bigAreaColor), Color.green(bigAreaColor), Color.blue(bigAreaColor), Color.alpha(bigAreaColor)), 5);
 
             Core.line(mRgba, new org.opencv.core.Point(cameraViewWidth, bottomLineHeight), new org.opencv.core.Point(0, bottomLineHeight), new Scalar(154, 189, 47), 6);
-
-
         }
-
-
         return mRgba;
     }
 

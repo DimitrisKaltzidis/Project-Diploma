@@ -3,3 +3,5 @@ RobotOS_V2 is my attempt to create a functional android program that will allow 
 
 Circuit design
 https://drive.google.com/open?id=0B_SdXDO5m3ZiNkdkOUlnc3pCVWc
+
+Code is far from optimized
